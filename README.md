@@ -1,4 +1,4 @@
 # Indeco-Game-2024
 
 Loc de experimentat:
-https://codesandbox.io/s/react-new?file=/src/App.js:0-33
+https://codesandbox.io/p/sandbox/react-new?file=%2Fsrc%2FApp.js
