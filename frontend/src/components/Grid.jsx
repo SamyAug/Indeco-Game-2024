@@ -71,20 +71,32 @@ const Grid = () => {
   };
 
   return (
-    <>
-      <h3>{gameStatus}</h3>
-      <div className="row w-50 text-center" style={{ height: "60px" }}>
-        {gameBoard.map((cell, index) => (
-          <div
-            key={index}
-            className="col-4 h-100 border border-black flex items-center justify-center fs-1 cursor-pointer"
-            onClick={() => handleCellClick(index)}
-          >
-            {cell}
+    <div className="d-flex justify-content-center pt-5">
+      <div className="card text-center w-75">
+        <div className="card-header">
+          <h3>{gameStatus}</h3>
+        </div>
+        <div
+          className="card-body d-flex justify-content-center"
+          style={{ height: 210 }}
+        >
+          <div className="row w-50" style={{ height: "60px" }}>
+            {gameBoard.map((cell, index) => (
+              <div
+                key={index}
+                className="col-4 h-100 border border-black flex items-center justify-center fs-1 cursor-pointer"
+                onClick={() => handleCellClick(index)}
+              >
+                {cell}
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+        <div className="card-footer">
+          <h3>Winner:</h3>
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 
