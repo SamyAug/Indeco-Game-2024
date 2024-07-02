@@ -15,6 +15,7 @@ const Grid = () => {
   const [gameBoard, setGameBoard] = useState(Array(9).fill(null));
   const [currentSymbol, setCurrentSymbol] = useState("X");
   const [gameStatus, setGameStatus] = useState("Let's play!");
+  const [winner, setWinner] = useState([null, null, null]);
 
   /**
    * Function to handle cell click
@@ -38,6 +39,19 @@ const Grid = () => {
   const checkWinner = (board) => {
     const timeout = 1000;
 
+    // Check for winning combinations
+    for (let i = 0; i < winningCombos.length; i++) {
+      const [a, b, c] = winningCombos[i];
+      if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+        setGameStatus(`Player ${board[a]} wins!`);
+        setWinner(winningCombos[i]);
+        setTimeout(() => {
+          resetGame();
+        }, timeout);
+        return;
+      }
+    }
+
     // If the board is full, it's a draw
     if (!board.includes(null)) {
       setGameStatus("It's a draw!");
@@ -45,18 +59,6 @@ const Grid = () => {
         resetGame();
       }, timeout);
       return;
-    }
-
-    // Check for winning combinations
-    for (let i = 0; i < winningCombos.length; i++) {
-      const [a, b, c] = winningCombos[i];
-      if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-        setGameStatus(`Player ${board[a]} wins!`);
-        setTimeout(() => {
-          resetGame();
-        }, timeout);
-        return;
-      }
     }
   };
 
@@ -78,13 +80,15 @@ const Grid = () => {
         </div>
         <div
           className="card-body d-flex justify-content-center"
-          style={{ height: 210 }}
+          style={{ height: 400 }}
         >
-          <div className="row w-50" style={{ height: "60px" }}>
+          <div className="row w-50" style={{ height: "120px" }}>
             {gameBoard.map((cell, index) => (
               <div
                 key={index}
-                className="col-4 h-100 border border-black flex items-center justify-center fs-1 cursor-pointer"
+                className={`col-4 h-100 border border-black flex items-center justify-center align-content-center fs-1 cursor-pointer ${
+                  winner.includes(index) && "bg-warning"
+                }`}
                 onClick={() => handleCellClick(index)}
               >
                 {cell}
@@ -93,7 +97,7 @@ const Grid = () => {
           </div>
         </div>
         <div className="card-footer">
-          <h3>Winner:</h3>
+          <h3>...</h3>
         </div>
       </div>
     </div>
