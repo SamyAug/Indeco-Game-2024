@@ -4,6 +4,7 @@ import { useState } from "react";
 
 function GameBoard() {
   const [borderColor, setBorderColor] = useState("border-dark-subtle");
+  const [hoverCellIndex, setHoverCellIndex] = useState(0);
   const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
   /**
@@ -13,12 +14,20 @@ function GameBoard() {
   return (
     <>
       <div className="container">
-        <div className="row">
-          {arr.map((element) => (
+        <div 
+        className="row"
+        onMouseEnter={() => {
+          setBorderColor("border-dark")}}
+        onMouseLeave={() => {
+          setBorderColor("border-dark-subtle")
+        }}
+        >
+          {arr.map((element,index) => (
             <div
-              className={`col-4 border text-center align-content-center fw-bold fs-1 cell ${borderColor}`}
-              onMouseEnter={() => setBorderColor("border-dark")}
-              onMouseLeave={() => setBorderColor("border-dark-subtle")}
+              className={`col-4 border text-center align-content-center fw-bold fs-1 cell ${hoverCellIndex === index ? borderColor : ''}`}
+              onMouseEnter={() => {
+                setHoverCellIndex(index);
+                }}
               key={element}
               style={{ aspectRatio: "1 / 1" }}
             >
