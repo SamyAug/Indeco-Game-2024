@@ -28,7 +28,7 @@ app.ws.use(route.all('/', function (ctx) {
             const { registerAs } = JSON.parse(message)
             
             if(users.findIndex((user) => user.username === registerAs) >= 0) {
-                ctx.websocket.send({ messageType: 'error', message:"User with this name already exists." });
+                ctx.websocket.send(JSON.stringify({ messageType: 'error', message:"User with this name already exists." }));
             } else {
                 const userId = randomUUID()
                 const newUser = { userId, username: registerAs }
