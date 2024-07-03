@@ -3,6 +3,7 @@ const Koa = require('koa'),
     websockify = require('koa-websocket')
 serve = require('koa-simple-static').default;
 const app = websockify(new Koa());
+const { randomUUID } = require('crypto')
 
 const users = []
 const sockets = []
@@ -21,15 +22,15 @@ app.ws.use(function (ctx, next) {
 // Using routes
 app.ws.use(route.all('/', function (ctx) {
     ctx.websocket.send(JSON.stringify({ messageType: 'connection', message: 'Connected to WebSocket successfully.'}));
-    const userId = Math.floor(Math.random() * 100000)
     ctx.websocket.on('message', function (message) {
         // do something with the message from client
         try {
             const { registerAs } = JSON.parse(message)
-
+            
             if(users.indexOf(registerAs) >= 0) {
                 ctx.websocket.send("User with this name already exists.");
             } else {
+                const userId = randomUUID()
                 const newUser = { userId, username: registerAs }
 
                 users.push(newUser)
