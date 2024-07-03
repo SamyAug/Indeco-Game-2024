@@ -4,7 +4,7 @@ import { useState } from "react";
 
 function GameBoard() {
   const [borderColor, setBorderColor] = useState("border-dark-subtle");
-  const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const arr = ["", "", "", "", "", "", "", "", ""];
 
   /**
    * TEMA: Se se faca hover la fiecare celula in parte, nu la tot
