@@ -1,9 +1,9 @@
-import { useState } from "react"
+import { useContext, useState } from "react"
 import Lobbies from "./Lobbies"
+import { SocketContext } from "./SocketContext"
 
-export default function Socket() {
-    //const [socket] = useState(new WebSocket(`ws://${location.host}`))
-    const [socket] = useState(new WebSocket(`ws://localhost:8080`))
+export default function Register() {
+    const socket = useContext(SocketContext)
     const [message, setMessage] = useState('')
     const [userCredentials, setUserCredentials] = useState(null)
     const [userList, setUserList] = useState([])
