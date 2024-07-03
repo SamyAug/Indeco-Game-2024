@@ -4,6 +4,13 @@ const Koa = require('koa'),
 serve = require('koa-simple-static').default;
 const app = websockify(new Koa());
 
+const users = []
+const sockets = []
+
+const broadcast = (message) => {
+    sockets.map(({ socket }) => socket.send(message))
+}
+
 // Regular middleware
 // Note it's app.ws.use and not app.use
 app.ws.use(function (ctx, next) {
@@ -13,11 +20,29 @@ app.ws.use(function (ctx, next) {
 
 // Using routes
 app.ws.use(route.all('/', function (ctx) {
-    ctx.websocket.send('Hello World');
+    ctx.websocket.send(JSON.stringify({ messageType: 'connection', message: 'Connected to WebSocket successfully.'}));
+    const userId = Math.floor(Math.random() * 100000)
     ctx.websocket.on('message', function (message) {
         // do something with the message from client
-        console.log(message);
-        ctx.websocket.send('Hy from websocket');
+        try {
+            const { registerAs } = JSON.parse(message)
+
+            if(users.indexOf(registerAs) >= 0) {
+                ctx.websocket.send("User with this name already exists.");
+            } else {
+                const newUser = { userId, username: registerAs }
+
+                users.push(newUser)
+                sockets.push({ userId, socket: ctx.websocket })
+
+                broadcast(JSON.stringify({ messageType: 'userRefresh', users}))
+                ctx.websocket.send(JSON.stringify({ messageType: 'authentication', ...newUser }))
+            }
+
+
+        } catch (err) {
+            console.log(err)
+        }
     });
 }));
 app.use(serve({
@@ -30,4 +55,6 @@ app.use(route.get('/helloword', function (ctx) {
 }
 ));
 
-app.listen(8080);
+app.listen(8080, () => {
+    console.log("Listening on port 8080")
+});
