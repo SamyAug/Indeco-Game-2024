@@ -1,12 +1,12 @@
 import { useContext, useState } from "react"
-import Lobbies from "./Lobbies"
+import Rooms from "./Rooms"
 import { SocketContext } from "./SocketContext"
 
 export default function Register() {
     const socket = useContext(SocketContext)
     const [message, setMessage] = useState('')
     const [userCredentials, setUserCredentials] = useState(null)
-    const [userList, setUserList] = useState([])
+    const [errorMessage, setErrorMessage] = useState('')
 
     socket.onmessage = ({ data }) => {
         console.log(data)
@@ -15,9 +15,9 @@ export default function Register() {
     
             if(parsedMessage.messageType === "authentication")
                 setUserCredentials({ userId: parsedMessage.userId, username: parsedMessage.username})
-    
-            if(parsedMessage.messageType === "userRefresh")
-                setUserList(parsedMessage.users)
+
+            if(parsedMessage.messageType === "registerError")
+                setErrorMessage(parsedMessage.message)
         } catch (err) {
             console.log(err)
         }
@@ -29,23 +29,24 @@ export default function Register() {
         setMessage(value)
     }
 
-    const handleClick = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault()
 
-        socket.send(JSON.stringify({ registerAs: message }))
+        socket.send(JSON.stringify({ messageType: "authentication", registerAs: message }))
     }
 
     return (
         <>
+            {errorMessage && <h1>{errorMessage}</h1>}
         {
             userCredentials
             ? 
-                <Lobbies userList={userList}/>
+                <Rooms />
             : 
                 <div>
                     <form>
                         <input type='text' value={message} onChange={handleChange}/>
-                        <button type="submit" value="Submit" onClick={handleClick}/>
+                        <button type="submit" onClick={handleSubmit}>Submit</button>
                     </form>
                 </div>
         }
