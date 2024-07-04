@@ -6,6 +6,7 @@ export default function Rooms({ userData }) {
     const socket = useContext(SocketContext)
     const [joinRequests, setJoinRequests] = useState([])
     const [userList, setUserList] = useState([])
+    const [hostData, setHostData] = useState(null)
 
     socket.onmessage = ({ data }) => {
         console.log(data)
@@ -13,6 +14,7 @@ export default function Rooms({ userData }) {
         try {
             const parsedMessage = JSON.parse(data)
 
+            //TODO: fix lack of user list on first register
             if(parsedMessage.messageType === "userRefresh")
                 setUserList(parsedMessage.users)
 
@@ -24,10 +26,10 @@ export default function Rooms({ userData }) {
         }
     }
 
-    const handleSendJoinRequest = (e) => {
-        const { value: hostId } = e.target
-
+    const handleSendJoinRequest = (host) => {
+        const { userId: hostId } = host
         socket.send(JSON.stringify({ messageType: 'joinRequest', clientData: userData, hostId }))
+        setHostData(host)
     }
 
     const handleRequestAccept = (e) => {
@@ -43,10 +45,14 @@ export default function Rooms({ userData }) {
         console.log(hostId)
     }
 
-    const userMap = userList.map(({ userId, username }) => (
-        <li key={userId}>
-            {username}
-            <button value={userId} onClick={handleSendJoinRequest}>Join</button>
+    const userMap = userList.map((user) => (
+        <li key={user.userId}>
+            {user.username}
+            <button 
+                onClick={() => handleSendJoinRequest(user)}
+            >
+                {user.userStatus === "available" ? "Join" : "Playing"}
+            </button>
         </li>)
         )
 
@@ -60,14 +66,22 @@ export default function Rooms({ userData }) {
 
     return (
         <>
-            <ul>
-                {userMap}
-            </ul>
-            {joinRequests.length > 0 && 
+        {
+            hostData 
+            ?
+            <h1>Awaiting response from user {hostData.username}.</h1>
+            :
+            <div>
                 <ul>
-                    {requestMap}
+                    {userMap}
                 </ul>
-            }
+                {joinRequests.length > 0 && 
+                    <ul>
+                        {requestMap}
+                    </ul>
+                }
+            </div>
+        }
         </>
     )
 }
