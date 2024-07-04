@@ -1,4 +1,8 @@
+
 import { useState } from "react";
+import "./GameBoard.css";
+
+const timeBetweenMoves = 1000;
 
 const winningCombos = [
   [0, 1, 2],
@@ -9,89 +13,84 @@ const winningCombos = [
   [2, 5, 8],
   [0, 4, 8],
   [2, 4, 6]
-]
+];
 
-function calculateWinner(squares) {
-  //the game can have a winner
+function calculateWinner(stateArray) {
   for (let i = 0; i < winningCombos.length; i++) {
-    const [a, b, c] = winningCombos[i];
-    if (squares[a] !== "" && squares[a] === squares[b] && squares[b] === squares[c]) {
-      return (squares[a]);
-    }
+    let winningCombo = winningCombos[i];
+    const [a, b, c] = winningCombo;
+    if (stateArray[a] !== "" && stateArray[a] === stateArray[b] && stateArray[b] === stateArray[c]) return stateArray[a];
   }
-  // or the result is a draw
   return "";
 }
 
-function existEmptyCellOnTable(stateArray) {
-  return stateArray.filter((elem) => { return elem === "" }).length !== 0;
-}
-
-function calculateGameStatus(stateArray, currrentSymbol) {
-  let isDraw = existEmptyCellOnTable(stateArray) === 0;
-  let winner = calculateWinner(stateArray);
-  let gameStatus;
-  if (winner) gameStatus = `Player ${winner} won.`;
-  else if (isDraw) gameStatus = "It's a draw";
-  else gameStatus = `Next player : ${currrentSymbol}`;
-  return gameStatus;
+function existEmptyCellsOnTable(stateArray) {
+  return stateArray.filter((elem) => { return elem === "" }).length > 0;
 }
 
 function GameBoard() {
-  const [hoverCell, setHoverCell] = useState(-1);
   const [value, setValue] = useState("X");
   const [arr, setArr] = useState(Array(9).fill(""));
 
   function handleCellClick(index) {
-    if (arr[index] || calculateWinner(arr)) return;
+    if (arr[index] || calculateWinner(arr)) {
+      return;
+    }
     else {
-      // celula este libera
-      // si bineinteles este randul nostru, al persoanei sa puna X
-      let newArr = arr.map((element, indexElem) => {
+      let newArrayState = arr.map((element, indexElem) => {
         if (index === indexElem) return value;
         return element;
       });
-
-      if (value === "X") {
-        setArr(newArr);
+      setArr(newArrayState);
+      if (!calculateWinner(newArrayState)) {
+        if (existEmptyCellsOnTable(newArrayState)) {
+          setValue("O");
+          setTimeout(() => { showComputerMove(newArrayState) }, timeBetweenMoves);
+        }
+        else return;
       }
-      setValue("O");
-      if (!calculateWinner(newArr) && existEmptyCellOnTable(newArr)) {
-        setTimeout(()=>showComputerMove(newArr), 2000);
-      };
     }
   }
 
-  function showComputerMove(newArr) {
-    //calculatorul vrea sa puna O pe prima o pozitie random libera
-    let firstRandomAvailabePosition = null;
-    while (firstRandomAvailabePosition === null) {
-      let randomPosition = Math.floor(Math.random() * 9) + 1;
-      if (newArr[randomPosition] === "") firstRandomAvailabePosition = randomPosition;
+  function showComputerMove(newArrayState) {
+    let randomAvailableIndex = null;
+    while (randomAvailableIndex === null) {
+      let randomIndex = Math.floor(Math.random() * 9);
+      if (newArrayState[randomIndex] === "") randomAvailableIndex = randomIndex;
     }
-
-    setArr(newArr.map((element, indexElem) => {
-      if (indexElem === firstRandomAvailabePosition) return "O";
-      return element;
-    }))
+    let newArray = newArrayState.slice();
+    newArray[randomAvailableIndex] = "O";
+    setArr(newArray);
     setValue("X");
   }
 
-  // if (value === "O" && !calculateWinner(arr) && existEmptyCellOnTable(arr)) {
-  //   setTimeout(showComputerMove, 2000);
-  // };
+  function calculateGameStatus() {
+    let winner = calculateWinner(arr);
+    if (winner) {
+      return `Player ${winner} won`;
+    }
+    else if (existEmptyCellsOnTable(arr) === false) return "It's a draw";
+    else return `Next player: ${value}`;
+  }
+
+  function resetGame() {
+    setValue("X");
+    setArr(Array(9).fill(""));
+  }
 
   return (
     <>
       {(value === "O" && existEmptyCellOnTable(arr)) ? <div>Loading...</div> : null}
       <div className="container">
-        {calculateGameStatus(arr, value)}
+        {calculateGameStatus()}
+        {value === "O" ? (<div className="spinner-border text-secondary" role="status">
+          <span className="sr-only">Waiting for partner...</span>
+        </div>
+        ) : null}
         <div className="row">
           {arr.map((element, index) => (
             <div
-              className={`col-4 border text-center align-content-center fw-bold fs-1 cell ${hoverCell === index ? "border-dark" : "border-dark-subtlee"}`}
-              onMouseEnter={() => setHoverCell(index)}
-              onMouseLeave={() => setHoverCell(-1)}
+              className={`col-4 text-center align-content-center fw-bold fs-1 cell ${value === "O" ? 'pe-none' : ''}`}
               onClick={() => handleCellClick(index)}
               key={index}
               style={{ aspectRatio: "1 / 1" }}
@@ -101,6 +100,10 @@ function GameBoard() {
           ))}
         </div>
       </div>
+      {!calculateGameStatus().includes("Next") ? (<div className="container">
+        <button className="btn btn-warning" onClick={resetGame}>Joc nou</button>
+      </div>) : null}
+
     </>
   );
 }
