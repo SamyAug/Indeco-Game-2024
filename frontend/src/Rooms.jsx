@@ -5,7 +5,8 @@ import { SocketContext } from "./SocketContext"
 export default function Rooms({ userData, userList }) {
     const socket = useContext(SocketContext)
     const [joinRequests, setJoinRequests] = useState([])
-    const [hostData, setHostData] = useState(null)
+    const [opponentId, setOpponentId] = useState(null)
+    const [isAwaitingResponse, setIsAwaitingResponse] = useState(false)
 
     socket.onmessage = ({ data }) => {
         console.log(data)
@@ -23,14 +24,19 @@ export default function Rooms({ userData, userList }) {
 
     const handleSendJoinRequest = (host) => {
         const { userId: hostId } = host
+
         socket.send(JSON.stringify({ messageType: 'joinRequest', clientData: userData, hostId }))
-        setHostData(host)
+
+        setOpponentId(hostId)
+        setIsAwaitingResponse(true)
     }
 
     const handleRequestAccept = (e) => {
         const { value: clientId } = e.target
 
+        socket.send(JSON.stringify({ messageType: 'acceptRequest'}))
 
+        setOpponentId(clientId)
     }
 
     const handleRequestDecline = (e) => {
@@ -58,12 +64,14 @@ export default function Rooms({ userData, userList }) {
         </li>
     ))
 
+    const opponentData = userList.find((user) => user.userId === opponentId)
+
     return (
         <>
         {
-            hostData 
+            isAwaitingResponse 
             ?
-            <h1>Awaiting response from user {hostData.username}.</h1>
+            <h1>Awaiting response from user {opponentData.username}.</h1>
             :
             <div>
                 <ul>
