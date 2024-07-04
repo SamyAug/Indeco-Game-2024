@@ -21,6 +21,8 @@ const changeUserStatus = (userId, newStatus) => {
     users = users.map((user) => {
         return user.userId === userId ? {...user, userStatus: newStatus} : user
     })
+
+    broadcastUserRefresh()
 }
 
 // Regular middleware
@@ -57,16 +59,16 @@ app.ws.use(route.all('/', function (ctx) {
             }
 
             if(parsedMessage.messageType === 'joinRequest'){
-                //TODO: refactor to use only clientId
-                const { clientData, hostId } = parsedMessage
+                const { clientId, hostId } = parsedMessage
                 const hostSocket = sockets.find((socket) => socket.userId === hostId).socket
 
                 users = users.map((user) => {
-                    return user.userId === clientData.userId ? {...user, userStatus: 'busy'} : user
+                    return user.userId === clientId ? {...user, userStatus: 'busy'} : user
                 })
 
-                hostSocket.send(JSON.stringify({ messageType: 'joinRequest', clientData }))
-                broadcastUserRefresh()
+                changeUserStatus(clientId, 'busy')
+
+                hostSocket.send(JSON.stringify({ messageType: 'joinRequest', clientId }))
             }
 
             if(parsedMessage.messageType === 'acceptRequest') {
@@ -78,7 +80,6 @@ app.ws.use(route.all('/', function (ctx) {
                 rooms.push({ roomId, hostSocket, clientSocket })
 
                 changeUserStatus(hostId, 'busy')
-                broadcastUserRefresh()
 
                 hostSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId }))
                 clientSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId }))

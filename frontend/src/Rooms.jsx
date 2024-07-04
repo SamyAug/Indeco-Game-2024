@@ -14,8 +14,11 @@ export default function Rooms({ userData, userList }) {
         try {
             const parsedMessage = JSON.parse(data)
 
-            if(parsedMessage.messageType === "joinRequest")
-                setJoinRequests(prevRequests => [...prevRequests, parsedMessage.clientData])
+            if(parsedMessage.messageType === "joinRequest") {
+                const client = userList.find((user) => user.userId === parsedMessage.clientId)
+
+                setJoinRequests(prevRequests => [...prevRequests, client])
+            }
 
         } catch (err) {
             console.log(err)
@@ -25,7 +28,7 @@ export default function Rooms({ userData, userList }) {
     const handleSendJoinRequest = (host) => {
         const { userId: hostId } = host
 
-        socket.send(JSON.stringify({ messageType: 'joinRequest', clientData: userData, hostId }))
+        socket.send(JSON.stringify({ messageType: 'joinRequest', clientId: userData.userId, hostId }))
 
         setOpponentId(hostId)
         setIsAwaitingResponse(true)
