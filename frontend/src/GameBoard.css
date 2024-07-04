@@ -1,7 +1,0 @@
-.cell{
-    border: 2px solid gray;
-}
-
-.cell:hover {
-    border: 2px solid black;
-}

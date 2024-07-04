@@ -1,110 +1,161 @@
-
-import { useState } from "react";
-import "./GameBoard.css";
-
-const timeBetweenMoves = 1000;
+/* eslint-disable react-hooks/exhaustive-deps */
+// import React from 'react'
+import { useEffect, useState } from "react";
+import PropTypes from "prop-types";
+import "./css/GameBoard.css";
 
 const winningCombos = [
-  [0, 1, 2],
+  [0, 1, 2], // Horizontal
   [3, 4, 5],
   [6, 7, 8],
-  [0, 3, 6],
+  [0, 3, 6], // Vertical
   [1, 4, 7],
   [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6]
+  [0, 4, 8], // Diagonal
+  [2, 4, 6],
 ];
 
-function calculateWinner(stateArray) {
-  for (let i = 0; i < winningCombos.length; i++) {
-    let winningCombo = winningCombos[i];
-    const [a, b, c] = winningCombo;
-    if (stateArray[a] !== "" && stateArray[a] === stateArray[b] && stateArray[b] === stateArray[c]) return stateArray[a];
-  }
-  return "";
-}
+function GameBoard({ status, handleSetStatus, statusOptions, playerSymbol }) {
+  const [cells, setCells] = useState(Array(9).fill(null));
+  const [winnerCombination, setWinnerCombination] = useState(
+    Array(3).fill(null)
+  );
 
-function existEmptyCellsOnTable(stateArray) {
-  return stateArray.filter((elem) => { return elem === "" }).length > 0;
-}
+  // Daca statusul indica faptul ca e randul calculatorului, se apeleaza functia pcMove
+  useEffect(() => {
+    if (status === statusOptions[2] || status === statusOptions[4]) {
+      pcMove();
+    }
+  }, [pcMove, status, statusOptions]);
 
-function GameBoard() {
-  const [value, setValue] = useState("X");
-  const [arr, setArr] = useState(Array(9).fill(""));
-
+  /**
+   * Function that handles the click event on a cell
+   * @param {int} index
+   * @returns
+   */
   function handleCellClick(index) {
-    if (arr[index] || calculateWinner(arr)) {
+    // Daca nu s-a ales un simbol, inseamna ca inca nu a inceput jocul
+    if (!playerSymbol) {
+      handleSetStatus(statusOptions[0]);
       return;
     }
-    else {
-      let newArrayState = arr.map((element, indexElem) => {
-        if (index === indexElem) return value;
-        return element;
-      });
-      setArr(newArrayState);
-      if (!calculateWinner(newArrayState)) {
-        if (existEmptyCellsOnTable(newArrayState)) {
-          setValue("O");
-          setTimeout(() => { showComputerMove(newArrayState) }, timeBetweenMoves);
-        }
-        else return;
+    // Daca celula este deja ocupata sau nu este randul jucatorului, nu se intampla nimic
+    if (
+      cells[index] !== null ||
+      (status !== statusOptions[1] && status !== statusOptions[3])
+    ) {
+      return;
+    }
+    // Daca jucatorul alege o celula, se face mutarea si urmeaza randul calculatorului
+    if (handleMove(index, playerSymbol)) {
+      handleSetStatus(statusOptions[4]);
+    }
+  }
+
+  /**
+   * Function that handles the computer move
+   * @returns
+   */
+  function pcMove() {
+    const emptyCells = cells.reduce((acc, cell, index) => {
+      if (cell === null) {
+        acc.push(index);
+      }
+      return acc;
+    }, []);
+    const randomIndex = Math.floor(Math.random() * emptyCells.length);
+    setTimeout(() => {
+      if (
+        handleMove(emptyCells[randomIndex], playerSymbol === "X" ? "O" : "X")
+      ) {
+        handleSetStatus(statusOptions[3]);
+      }
+    }, 1500);
+  }
+
+  /**
+   * Function that handles the move of a player (human or computer)
+   * @param {int} index
+   * @param {string} symbol
+   * @returns the opposite result of the checkWinner function (true or false)
+   */
+  function handleMove(index, symbol) {
+    const newCells = [...cells];
+    newCells[index] = symbol;
+    setCells([...newCells]);
+    return !checkWinner(newCells);
+  }
+
+  /**
+   * Function that checks if there is a winner
+   * @param {array} cells
+   * @returns true if there is a winner, false otherwise
+   */
+  function checkWinner(cells) {
+    console.log("checkWinner", cells);
+    for (let i = 0; i < winningCombos.length; i++) {
+      const [a, b, c] = winningCombos[i];
+      if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
+        setWinnerCombination(winningCombos[i]);
+        handleSetStatus(
+          cells[a] === playerSymbol ? statusOptions[5] : statusOptions[6]
+        );
+        resetGame();
+        return true;
       }
     }
-  }
-
-  function showComputerMove(newArrayState) {
-    let randomAvailableIndex = null;
-    while (randomAvailableIndex === null) {
-      let randomIndex = Math.floor(Math.random() * 9);
-      if (newArrayState[randomIndex] === "") randomAvailableIndex = randomIndex;
+    if (!cells.includes(null)) {
+      handleSetStatus(statusOptions[7]);
+      resetGame();
+      return true;
     }
-    let newArray = newArrayState.slice();
-    newArray[randomAvailableIndex] = "O";
-    setArr(newArray);
-    setValue("X");
+    return false;
   }
 
-  function calculateGameStatus() {
-    let winner = calculateWinner(arr);
-    if (winner) {
-      return `Player ${winner} won`;
-    }
-    else if (existEmptyCellsOnTable(arr) === false) return "It's a draw";
-    else return `Next player: ${value}`;
-  }
-
+  /**
+   * Function that resets the game
+   * @returns
+   */
   function resetGame() {
-    setValue("X");
-    setArr(Array(9).fill(""));
+    setTimeout(() => {
+      setCells(Array(9).fill(null));
+      setWinnerCombination(Array(3).fill(null));
+      handleSetStatus(statusOptions[8]);
+    }, 1500);
   }
 
   return (
     <>
       <div className="container">
-        {calculateGameStatus()}
-        {value === "O" ? (<div className="spinner-border text-secondary" role="status">
-          <span className="sr-only">Waiting for partner...</span>
-        </div>
-        ) : null}
-        <div className="row">
-          {arr.map((element, index) => (
+        <div className="row border border-5 border-primary-subtle">
+          {cells.map((element, index) => (
             <div
-              className={`col-4 text-center align-content-center fw-bold fs-1 cell ${value === "O" ? 'pe-none' : ''}`}
-              onClick={() => handleCellClick(index)}
               key={index}
+              role="button"
+              className={`col-4 text-center align-content-center fw-bold fs-1 user-select-none cell ${
+                winnerCombination.includes(index)
+                  ? "bg-success text-light"
+                  : !cells.includes(null) && winnerCombination.includes(null)
+                  ? "bg-warning"
+                  : ""
+              }`}
               style={{ aspectRatio: "1 / 1" }}
+              onClick={() => handleCellClick(index)}
             >
               {element}
             </div>
           ))}
         </div>
       </div>
-      {!calculateGameStatus().includes("Next") ? (<div className="container">
-        <button className="btn btn-warning" onClick={resetGame}>Joc nou</button>
-      </div>) : null}
-
     </>
   );
 }
+
+GameBoard.propTypes = {
+  status: PropTypes.string,
+  handleSetStatus: PropTypes.func,
+  statusOptions: PropTypes.array,
+  playerSymbol: PropTypes.string,
+};
 
 export default GameBoard;

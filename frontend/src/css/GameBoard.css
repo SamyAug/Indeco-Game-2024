@@ -1,0 +1,7 @@
+.cell {
+    border: 5px solid #9ec5fe;
+}
+
+.cell:hover {
+    border: 5px solid rgb(13, 110, 253);
+}
