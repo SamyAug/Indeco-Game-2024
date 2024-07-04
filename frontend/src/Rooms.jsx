@@ -2,10 +2,9 @@ import { useContext, useState } from "react"
 import { SocketContext } from "./SocketContext"
 
 
-export default function Rooms({ userData }) {
+export default function Rooms({ userData, userList }) {
     const socket = useContext(SocketContext)
     const [joinRequests, setJoinRequests] = useState([])
-    const [userList, setUserList] = useState([])
     const [hostData, setHostData] = useState(null)
 
     socket.onmessage = ({ data }) => {
@@ -13,10 +12,6 @@ export default function Rooms({ userData }) {
 
         try {
             const parsedMessage = JSON.parse(data)
-
-            //TODO: fix lack of user list on first register
-            if(parsedMessage.messageType === "userRefresh")
-                setUserList(parsedMessage.users)
 
             if(parsedMessage.messageType === "joinRequest")
                 setJoinRequests(prevRequests => [...prevRequests, parsedMessage.clientData])
@@ -33,16 +28,15 @@ export default function Rooms({ userData }) {
     }
 
     const handleRequestAccept = (e) => {
-        //TODO
-        const { value: hostId } = e.target
-        console.log(hostId)
+        const { value: clientId } = e.target
+
 
     }
 
     const handleRequestDecline = (e) => {
-        //TODO
-        const { value: hostId } = e.target
-        console.log(hostId)
+        const { value: clientId } = e.target
+
+
     }
 
     const userMap = userList.map((user) => (

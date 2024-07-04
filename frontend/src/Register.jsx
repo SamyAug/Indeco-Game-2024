@@ -6,12 +6,16 @@ export default function Register() {
     const socket = useContext(SocketContext)
     const [message, setMessage] = useState('')
     const [userData, setUserData] = useState(null)
+    const [userList, setUserList] = useState([])
     const [errorMessage, setErrorMessage] = useState('')
 
     socket.onmessage = ({ data }) => {
         console.log(data)
         try {
             const parsedMessage = JSON.parse(data)
+
+            if(parsedMessage.messageType === "userRefresh")
+                setUserList(parsedMessage.users)
     
             if(parsedMessage.messageType === "authentication") {
                 setUserData({ userId: parsedMessage.userId, username: parsedMessage.username})
@@ -43,7 +47,7 @@ export default function Register() {
         {
             userData
             ? 
-                <Rooms userData={userData}/>
+                <Rooms userData={userData} userList={userList} />
             : 
                 <div>
                     <form>
