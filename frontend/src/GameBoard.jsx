@@ -23,7 +23,7 @@ function calculateWinner(squares) {
   return "";
 }
 
-function existEmptyCellOnTable(stateArray){
+function existEmptyCellOnTable(stateArray) {
   return stateArray.filter((elem) => { return elem === "" }).length !== 0;
 }
 
@@ -47,34 +47,39 @@ function GameBoard() {
     else {
       // celula este libera
       // si bineinteles este randul nostru, al persoanei sa puna X
+      let newArr = arr.map((element, indexElem) => {
+        if (index === indexElem) return value;
+        return element;
+      });
+
       if (value === "X") {
-        setArr(arr.map((element, indexElem) => {
-          if (index === indexElem) return value;
-          return element;
-        }))
+        setArr(newArr);
       }
       setValue("O");
+      if (!calculateWinner(newArr) && existEmptyCellOnTable(newArr)) {
+        setTimeout(()=>showComputerMove(newArr), 2000);
+      };
     }
   }
 
-  function showComputerMove() {
+  function showComputerMove(newArr) {
     //calculatorul vrea sa puna O pe prima o pozitie random libera
     let firstRandomAvailabePosition = null;
     while (firstRandomAvailabePosition === null) {
       let randomPosition = Math.floor(Math.random() * 9) + 1;
-      if (arr[randomPosition] === "") firstRandomAvailabePosition = randomPosition;
+      if (newArr[randomPosition] === "") firstRandomAvailabePosition = randomPosition;
     }
 
-    setArr(arr.map((element, indexElem) => {
-      if (indexElem === firstRandomAvailabePosition) return value;
+    setArr(newArr.map((element, indexElem) => {
+      if (indexElem === firstRandomAvailabePosition) return "O";
       return element;
     }))
     setValue("X");
   }
 
-  if (value === "O" && !calculateWinner(arr) && existEmptyCellOnTable(arr)) {
-    setTimeout(showComputerMove, 2000);
-  };
+  // if (value === "O" && !calculateWinner(arr) && existEmptyCellOnTable(arr)) {
+  //   setTimeout(showComputerMove, 2000);
+  // };
 
   return (
     <>
