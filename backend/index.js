@@ -25,27 +25,39 @@ app.ws.use(route.all('/', function (ctx) {
     ctx.websocket.on('message', function (message) {
         // do something with the message from client
         try {
-            const { registerAs } = JSON.parse(message)
-            
-            if(users.findIndex((user) => user.username === registerAs) >= 0) {
-                ctx.websocket.send(JSON.stringify({ messageType: 'registerError', message:"User with this name already exists." }));
-            } else {
-                const userId = randomUUID()
-                const newUser = { userId, username: registerAs }
+            const parsedMessage = JSON.parse(message)
+            //TODO: use switch instead
+            if(parsedMessage.messageType === 'authentication') {
+                const { registerAs } = JSON.parse(message)
+                    
+                if(users.findIndex((user) => user.username === registerAs) >= 0) {
+                    ctx.websocket.send(JSON.stringify({ messageType: 'registerError', message:"User with this name already exists." }));
+                } else {
+                    const userId = randomUUID()
+                    const newUser = { userId, username: registerAs }
 
-                users.push(newUser)
-                sockets.push({ userId, socket: ctx.websocket })
+                    users.push(newUser)
+                    sockets.push({ userId, socket: ctx.websocket })
 
-                broadcast(JSON.stringify({ messageType: 'userRefresh', users }))
-                ctx.websocket.send(JSON.stringify({ messageType: 'authentication', ...newUser }))
+                    broadcast(JSON.stringify({ messageType: 'userRefresh', users }))
+                    ctx.websocket.send(JSON.stringify({ messageType: 'authentication', ...newUser }))
+                }
             }
 
+            if(parsedMessage.messageType === 'joinRequest'){
+                const { userData } = parsedMessage
+                const userSocket = sockets.find((socket) => socket.userId === userData.userId)
 
+                userSocket.send(JSON.stringify({ messageType: 'joinRequest', requesterData: userData }))
+            }
         } catch (err) {
             console.log(err)
         }
     });
 }));
+
+//TODO: handle user disconnects
+
 app.use(serve({
     dir: '../frontend/dist',
     index: 'index.html',
