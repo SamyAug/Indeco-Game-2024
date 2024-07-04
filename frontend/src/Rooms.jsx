@@ -2,7 +2,7 @@ import { useContext, useState } from "react"
 import { SocketContext } from "./SocketContext"
 
 
-export default function Rooms() {
+export default function Rooms({ userData }) {
     const socket = useContext(SocketContext)
     const [joinRequests, setJoinRequests] = useState([])
     const [userList, setUserList] = useState([])
@@ -17,37 +17,44 @@ export default function Rooms() {
                 setUserList(parsedMessage.users)
 
             if(parsedMessage.messageType === "joinRequest")
-                setJoinRequests(prevRequests => [...prevRequests, parsedMessage.requesterData])
+                setJoinRequests(prevRequests => [...prevRequests, parsedMessage.clientData])
 
         } catch (err) {
             console.log(err)
         }
     }
 
+    const handleSendJoinRequest = (e) => {
+        const { value: hostId } = e.target
+
+        socket.send(JSON.stringify({ messageType: 'joinRequest', clientData: userData, hostId }))
+    }
+
     const handleRequestAccept = (e) => {
         //TODO
-        const { value: userId } = e.target
-
+        const { value: hostId } = e.target
+        console.log(hostId)
 
     }
 
     const handleRequestDecline = (e) => {
         //TODO
-        const { value: userId } = e.target
+        const { value: hostId } = e.target
+        console.log(hostId)
     }
 
     const userMap = userList.map(({ userId, username }) => (
         <li key={userId}>
             {username}
-            <button value={userId}>Join</button>
+            <button value={userId} onClick={handleSendJoinRequest}>Join</button>
         </li>)
         )
 
     const requestMap = joinRequests.map(({ userId, username }) => (
         <li key={userId}>
             <span>{username} has requested to play with you.</span>
-            <button onClick={handleRequestAccept} value={userId}>Accept</button>
-            <button onClick={handleRequestDecline} value={userId}>Decline</button>
+            <button value={userId} onClick={handleRequestAccept}>Accept</button>
+            <button value={userId} onClick={handleRequestDecline}>Decline</button>
         </li>
     ))
 
@@ -56,7 +63,7 @@ export default function Rooms() {
             <ul>
                 {userMap}
             </ul>
-            {joinRequests.length && 
+            {joinRequests.length > 0 && 
                 <ul>
                     {requestMap}
                 </ul>

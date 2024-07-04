@@ -13,8 +13,10 @@ export default function Register() {
         try {
             const parsedMessage = JSON.parse(data)
     
-            if(parsedMessage.messageType === "authentication")
+            if(parsedMessage.messageType === "authentication") {
                 setUserData({ userId: parsedMessage.userId, username: parsedMessage.username})
+                setErrorMessage('')
+            }
 
             if(parsedMessage.messageType === "registerError")
                 setErrorMessage(parsedMessage.message)
