@@ -5,7 +5,7 @@ import { SocketContext } from "./SocketContext"
 export default function Register() {
     const socket = useContext(SocketContext)
     const [message, setMessage] = useState('')
-    const [userCredentials, setUserCredentials] = useState(null)
+    const [userData, setUserData] = useState(null)
     const [errorMessage, setErrorMessage] = useState('')
 
     socket.onmessage = ({ data }) => {
@@ -14,7 +14,7 @@ export default function Register() {
             const parsedMessage = JSON.parse(data)
     
             if(parsedMessage.messageType === "authentication")
-                setUserCredentials({ userId: parsedMessage.userId, username: parsedMessage.username})
+                setUserData({ userId: parsedMessage.userId, username: parsedMessage.username})
 
             if(parsedMessage.messageType === "registerError")
                 setErrorMessage(parsedMessage.message)
@@ -39,9 +39,9 @@ export default function Register() {
         <>
             {errorMessage && <h1>{errorMessage}</h1>}
         {
-            userCredentials
+            userData
             ? 
-                <Rooms />
+                <Rooms userData={userData}/>
             : 
                 <div>
                     <form>
