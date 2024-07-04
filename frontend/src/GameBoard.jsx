@@ -1,6 +1,8 @@
-// import React from 'react'
+
 import { useState } from "react";
-// import "./GameBoard.css";
+import "./GameBoard.css";
+
+const timeBetweenMoves = 1000;
 
 const winningCombos = [
   [0, 1, 2],
@@ -11,53 +13,83 @@ const winningCombos = [
   [2, 5, 8],
   [0, 4, 8],
   [2, 4, 6]
-]
+];
+
+function calculateWinner(stateArray) {
+  for (let i = 0; i < winningCombos.length; i++) {
+    let winningCombo = winningCombos[i];
+    const [a, b, c] = winningCombo;
+    if (stateArray[a] !== "" && stateArray[a] === stateArray[b] && stateArray[b] === stateArray[c]) return stateArray[a];
+  }
+  return "";
+}
+
+function existEmptyCellsOnTable(stateArray) {
+  return stateArray.filter((elem) => { return elem === "" }).length > 0;
+}
 
 function GameBoard() {
-  const [hoverCell, setHoverCell] = useState(-1);
   const [value, setValue] = useState("X");
-  const [arr, setArr] = useState(["", "", "", "", "", "", "", "", ""]);
-  const [gameStatus, setGameStatus] = useState("")
+  const [arr, setArr] = useState(Array(9).fill(""));
 
-  function checkWinner() {
-    winningCombos.forEach((winningCombo) => {
-      const [ a, b, c ] = winningCombo
-      if (arr[a] !== "" && arr[a] === arr[b] && arr[b] === arr[c]) {
-        setGameStatus(arr[a])
-      }
-    })
-  }
-  
   function handleCellClick(index) {
-    if (arr[index] === "") {
-      setArr(arr.map((element, indexElem) => {
+    if (arr[index] || calculateWinner(arr)) {
+      return;
+    }
+    else {
+      let newArrayState = arr.map((element, indexElem) => {
         if (index === indexElem) return value;
         return element;
-      }))
-      console.log(arr);
-      
-      setValue(value === "X" ? "O" : "X");
-      checkWinner();
+      });
+      setArr(newArrayState);
+      if (!calculateWinner(newArrayState)) {
+        if (existEmptyCellsOnTable(newArrayState)) {
+          setValue("O");
+          setTimeout(() => { showComputerMove(newArrayState) }, timeBetweenMoves);
+        }
+        else return;
+      }
     }
   }
+
+  function showComputerMove(newArrayState) {
+    let randomAvailableIndex = null;
+    while (randomAvailableIndex === null) {
+      let randomIndex = Math.floor(Math.random() * 9);
+      if (newArrayState[randomIndex] === "") randomAvailableIndex = randomIndex;
+    }
+    let newArray = newArrayState.slice();
+    newArray[randomAvailableIndex] = "O";
+    setArr(newArray);
+    setValue("X");
+  }
+
+  function calculateGameStatus() {
+    let winner = calculateWinner(arr);
+    if (winner) {
+      return `Player ${winner} won`;
+    }
+    else if (existEmptyCellsOnTable(arr) === false) return "It's a draw";
+    else return `Next player: ${value}`;
+  }
+
+  function resetGame() {
+    setValue("X");
+    setArr(Array(9).fill(""));
+  }
+
   return (
     <>
       <div className="container">
-        {
-          gameStatus !== "" &&
-          (gameStatus === 'X' ?
-            <div>
-              Player 1 won
-            </div> :
-            <div>Player 2 won</div>)
-
-        }
+        {calculateGameStatus()}
+        {value === "O" ? (<div className="spinner-border text-secondary" role="status">
+          <span className="sr-only">Waiting for partner...</span>
+        </div>
+        ) : null}
         <div className="row">
           {arr.map((element, index) => (
             <div
-              className={`col-4 border text-center align-content-center fw-bold fs-1 cell ${hoverCell === index ? "border-dark" : "border-dark-subtlee"}`}
-              onMouseEnter={() => setHoverCell(index)}
-              onMouseLeave={() => setHoverCell(-1)}
+              className={`col-4 text-center align-content-center fw-bold fs-1 cell ${value === "O" ? 'pe-none' : ''}`}
               onClick={() => handleCellClick(index)}
               key={index}
               style={{ aspectRatio: "1 / 1" }}
@@ -67,6 +99,10 @@ function GameBoard() {
           ))}
         </div>
       </div>
+      {!calculateGameStatus().includes("Next") ? (<div className="container">
+        <button className="btn btn-warning" onClick={resetGame}>Joc nou</button>
+      </div>) : null}
+
     </>
   );
 }
