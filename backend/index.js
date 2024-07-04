@@ -39,8 +39,8 @@ app.ws.use(route.all('/', function (ctx) {
                     users.push(newUser)
                     sockets.push({ userId, socket: ctx.websocket })
 
-                    broadcast(JSON.stringify({ messageType: 'userRefresh', users }))
                     ctx.websocket.send(JSON.stringify({ messageType: 'authentication', ...newUser }))
+                    broadcast(JSON.stringify({ messageType: 'userRefresh', users }))
                 }
             }
 
