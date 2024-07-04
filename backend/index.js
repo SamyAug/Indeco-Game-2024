@@ -5,11 +5,15 @@ serve = require('koa-simple-static').default;
 const app = websockify(new Koa());
 const { randomUUID } = require('crypto')
 
-const users = []
+let users = []
 const sockets = []
 
 const broadcast = (message) => {
     sockets.map(({ socket }) => socket.send(message))
+}
+
+const broadcastUserRefresh = () => {
+    broadcast(JSON.stringify({ messageType: 'userRefresh', users }))
 }
 
 // Regular middleware
@@ -34,13 +38,14 @@ app.ws.use(route.all('/', function (ctx) {
                     ctx.websocket.send(JSON.stringify({ messageType: 'registerError', message:"User with this name already exists." }));
                 } else {
                     const userId = randomUUID()
-                    const newUser = { userId, username: registerAs }
+                    //TODO: add user state (available/busy) to user object
+                    const newUser = { userId, username: registerAs, userStatus: 'available' }
 
                     users.push(newUser)
                     sockets.push({ userId, socket: ctx.websocket })
 
                     ctx.websocket.send(JSON.stringify({ messageType: 'authentication', ...newUser }))
-                    broadcast(JSON.stringify({ messageType: 'userRefresh', users }))
+                    broadcastUserRefresh()
                 }
             }
 
@@ -48,7 +53,12 @@ app.ws.use(route.all('/', function (ctx) {
                 const { userData } = parsedMessage
                 const userSocket = sockets.find((socket) => socket.userId === userData.userId)
 
+                users = users.map((user) => {
+                    return user.userId === userData.userId ? {...user, userStatus: 'busy'} : user
+                })
+
                 userSocket.send(JSON.stringify({ messageType: 'joinRequest', requesterData: userData }))
+                broadcastUserRefresh()
             }
         } catch (err) {
             console.log(err)
