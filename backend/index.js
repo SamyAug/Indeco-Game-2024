@@ -50,14 +50,14 @@ app.ws.use(route.all('/', function (ctx) {
             }
 
             if(parsedMessage.messageType === 'joinRequest'){
-                const { userData } = parsedMessage
-                const userSocket = sockets.find((socket) => socket.userId === userData.userId)
+                const { clientData, hostId } = parsedMessage
+                const hostSocket = sockets.find((socket) => socket.userId === hostId).socket
 
                 users = users.map((user) => {
-                    return user.userId === userData.userId ? {...user, userStatus: 'busy'} : user
+                    return user.userId === clientData.userId ? {...user, userStatus: 'busy'} : user
                 })
 
-                userSocket.send(JSON.stringify({ messageType: 'joinRequest', requesterData: userData }))
+                hostSocket.send(JSON.stringify({ messageType: 'joinRequest', clientData }))
                 broadcastUserRefresh()
             }
         } catch (err) {
