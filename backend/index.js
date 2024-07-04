@@ -7,6 +7,7 @@ const { randomUUID } = require('crypto')
 
 let users = []
 const sockets = []
+const rooms = []
 
 const broadcast = (message) => {
     sockets.map(({ socket }) => socket.send(message))
@@ -14,6 +15,12 @@ const broadcast = (message) => {
 
 const broadcastUserRefresh = () => {
     broadcast(JSON.stringify({ messageType: 'userRefresh', users }))
+}
+
+const changeUserStatus = (userId, newStatus) => {
+    users = users.map((user) => {
+        return user.userId === userId ? {...user, userStatus: newStatus} : user
+    })
 }
 
 // Regular middleware
@@ -50,6 +57,7 @@ app.ws.use(route.all('/', function (ctx) {
             }
 
             if(parsedMessage.messageType === 'joinRequest'){
+                //TODO: refactor to use only clientId
                 const { clientData, hostId } = parsedMessage
                 const hostSocket = sockets.find((socket) => socket.userId === hostId).socket
 
@@ -59,6 +67,21 @@ app.ws.use(route.all('/', function (ctx) {
 
                 hostSocket.send(JSON.stringify({ messageType: 'joinRequest', clientData }))
                 broadcastUserRefresh()
+            }
+
+            if(parsedMessage.messageType === 'acceptRequest') {
+                const { clientId, hostId } = parsedMessage
+                const hostSocket = ctx.websocket
+                const clientSocket = sockets.find((socket) => socket.userId === clientId).socket
+                const roomId = randomUUID()
+
+                rooms.push({ roomId, hostSocket, clientSocket })
+
+                changeUserStatus(hostId, 'busy')
+                broadcastUserRefresh()
+
+                hostSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId }))
+                clientSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId }))
             }
         } catch (err) {
             console.log(err)
