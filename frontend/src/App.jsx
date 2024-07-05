@@ -1,5 +1,3 @@
-// import { useState } from "react";
-
 import { useState } from "react";
 import GameBoard from "./GameBoard";
 import GameStatus from "./GameStatus";
@@ -52,7 +50,7 @@ function App() {
         </div>
         <div className="col-md-2 col-6 order-3 order-md-3">
           <PlayerCard
-            name="You"
+            name="Player"
             active={status === statusOptions[1] || status === statusOptions[3]}
             imageSrc="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWcyeDd0bTMydjR6aWpneGJuNnpqdjB5Z2c0eGJpYXI3eTk2dXBycyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3og0ID5AW1SmPuG3u0/giphy.webp"
             isWinner={status === statusOptions[5]}

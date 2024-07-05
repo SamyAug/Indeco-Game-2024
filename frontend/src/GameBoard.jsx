@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-// import React from 'react'
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import "./css/GameBoard.css";
@@ -132,13 +131,19 @@ function GameBoard({ status, handleSetStatus, statusOptions, playerSymbol }) {
             <div
               key={index}
               role="button"
-              className={`col-4 text-center align-content-center fw-bold fs-1 user-select-none cell ${
-                winnerCombination.includes(index)
-                  ? "bg-success text-light"
-                  : !cells.includes(null) && winnerCombination.includes(null)
-                  ? "bg-warning"
-                  : ""
-              }`}
+              className={`col-4 text-center align-content-center fw-bold fs-1 user-select-none 
+                ${
+                  status === statusOptions[1] || status === statusOptions[3]
+                    ? "cell"
+                    : "not-ready pe-none"
+                }
+                ${
+                  winnerCombination.includes(index)
+                    ? "bg-success text-light"
+                    : !cells.includes(null) && winnerCombination.includes(null)
+                    ? "bg-warning"
+                    : ""
+                }`}
               style={{ aspectRatio: "1 / 1" }}
               onClick={() => handleCellClick(index)}
             >

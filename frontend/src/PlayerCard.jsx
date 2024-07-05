@@ -1,4 +1,3 @@
-// import React from 'react'
 import PropTypes from "prop-types";
 
 function PlayerCard({ name, active, imageSrc = "", isWinner = false }) {
@@ -9,7 +8,7 @@ function PlayerCard({ name, active, imageSrc = "", isWinner = false }) {
           active ? "border-5 border-primary-subtle shadow-lg" : "border-gray"
         }`}
       >
-        <img src={imageSrc} className="card-img-top" alt="..." />
+        <img src={imageSrc} className="card-img-top pe-none" alt="..." />
         <div className="card-body">
           <h5 className="card-title">{name}</h5>
           <p className="card-text">
@@ -21,19 +20,13 @@ function PlayerCard({ name, active, imageSrc = "", isWinner = false }) {
         <div className="container mt-2">
           <div className="row">
             <div className="col text-center">
-              <div className="spinner-grow text-danger" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </div>
+              <div className="spinner-grow text-danger" role="status">⭐</div>
             </div>
             <div className="col text-center">
-              <div className="spinner-grow text-success" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </div>
+              <div className="spinner-grow text-success" role="status">⭐</div>
             </div>
             <div className="col text-center">
-              <div className="spinner-grow text-warning" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </div>
+              <div className="spinner-grow text-warning" role="status">⭐</div>
             </div>
           </div>
         </div>
