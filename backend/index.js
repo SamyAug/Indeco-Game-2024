@@ -91,8 +91,7 @@ app.ws.use(route.all('/', function (ctx) {
                 const { cancellerType, targetId, cancellerId } = parsedMessage
                 const targetSocket = findUserSocketById(targetId)
 
-                if(cancellerType === 'host')
-                    changeUserStatus(targetId, 'available')
+                changeUserStatus(cancellerType === 'host' ? targetId : cancellerId, 'available')
 
                 targetSocket.send(JSON.stringify({ messageType: 'cancelRequest', cancellerType, cancellerId }))
             }
