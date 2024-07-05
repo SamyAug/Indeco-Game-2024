@@ -25,6 +25,8 @@ const changeUserStatus = (userId, newStatus) => {
     broadcastUserRefresh()
 }
 
+const findUserSocketById = (userId) => sockets.find((socket) => socket.userId === hostId).socket
+
 // Regular middleware
 // Note it's app.ws.use and not app.use
 app.ws.use(function (ctx, next) {
@@ -60,7 +62,7 @@ app.ws.use(route.all('/', function (ctx) {
 
             if(parsedMessage.messageType === 'joinRequest'){
                 const { clientId, hostId } = parsedMessage
-                const hostSocket = sockets.find((socket) => socket.userId === hostId).socket
+                const hostSocket = findUserSocketById(hostId)
 
                 users = users.map((user) => {
                     return user.userId === clientId ? {...user, userStatus: 'busy'} : user
@@ -74,7 +76,7 @@ app.ws.use(route.all('/', function (ctx) {
             if(parsedMessage.messageType === 'acceptRequest') {
                 const { clientId, hostId } = parsedMessage
                 const hostSocket = ctx.websocket
-                const clientSocket = sockets.find((socket) => socket.userId === clientId).socket
+                const clientSocket = findUserSocketById(clientId)
                 const roomId = randomUUID()
 
                 rooms.push({ roomId, hostSocket, clientSocket })
@@ -83,6 +85,16 @@ app.ws.use(route.all('/', function (ctx) {
 
                 hostSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId }))
                 clientSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId }))
+            }
+
+            if(parsedMessage.messageType === 'cancelRequest') {
+                const { cancellerType, targetId, cancellerId } = parsedMessage
+                const targetSocket = findUserSocketById(targetId)
+
+                if(userType === 'host')
+                    changeUserStatus(targetId, 'available')
+
+                targetSocket.send(JSON.stringify({ messageType: 'cancelRequest', cancellerType, cancellerId }))
             }
         } catch (err) {
             console.log(err)
