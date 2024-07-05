@@ -51,8 +51,8 @@ export default function Rooms({ userData }) {
 
     console.log("User list: ", userList)
 
-    const handleSendJoinRequest = (host) => {
-        const { userId: hostId } = host
+    const handleSendJoinRequest = (e) => {
+        const { value: hostId } = e.target
 
         socket.send(JSON.stringify({ messageType: 'joinRequest', clientId: userData.userId, hostId }))
 
@@ -82,14 +82,15 @@ export default function Rooms({ userData }) {
         }
     }
 
-    //TODO: destructure user object, only send id in request
-    const userMap = userList.map((user) => (
-        <li key={user.userId}>
-            {user.username}
+    const userMap = userList.map(({ userId, username, userStatus }) => (
+        <li key={userId}>
+            {username}
             <button 
-                onClick={() => handleSendJoinRequest(user)}
+                value={userId}
+                onClick={handleSendJoinRequest}
+                disabled={userStatus !== "available"}
             >
-                {user.userStatus === "available" ? "Join" : "Playing"}
+                {userStatus === "available" ? "Join" : "Playing"}
             </button>
         </li>)
         )
