@@ -2,20 +2,27 @@ import { useContext, useState } from "react"
 import { SocketContext } from "./SocketContext"
 
 
-export default function Rooms({ userData, userList }) {
+export default function Rooms({ userData }) {
     const socket = useContext(SocketContext)
+    const [userList, setUserList] = useState([])
     const [joinRequests, setJoinRequests] = useState([])
     const [opponentId, setOpponentId] = useState(null)
     const [isAwaitingResponse, setIsAwaitingResponse] = useState(false)
 
     socket.onmessage = ({ data }) => {
-        console.log(data)
+        console.log("Socket data from Rooms: ", data)
 
-        try {
-            const parsedMessage = JSON.parse(data)
+        //TODO: fix try catch block not always getting executed
+       try {
+           const parsedMessage = JSON.parse(data)
+           console.log("Parsed message type: ", parsedMessage.messageType)
+
+            if(parsedMessage.messageType === "userRefresh")
+                setUserList(parsedMessage.users)
 
             if(parsedMessage.messageType === "joinRequest") {
                 const client = userList.find((user) => user.userId === parsedMessage.clientId)
+
 
                 setJoinRequests(prevRequests => [...prevRequests, client])
             }
@@ -24,6 +31,8 @@ export default function Rooms({ userData, userList }) {
             console.log(err)
         }
     }
+
+    console.log("User list: ", userList)
 
     const handleSendJoinRequest = (host) => {
         const { userId: hostId } = host
