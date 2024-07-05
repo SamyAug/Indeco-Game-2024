@@ -25,7 +25,7 @@ const changeUserStatus = (userId, newStatus) => {
     broadcastUserRefresh()
 }
 
-const findUserSocketById = (userId) => sockets.find((socket) => socket.userId === hostId).socket
+const findUserSocketById = (userId) => sockets.find((socket) => socket.userId === userId).socket
 
 // Regular middleware
 // Note it's app.ws.use and not app.use
@@ -91,7 +91,7 @@ app.ws.use(route.all('/', function (ctx) {
                 const { cancellerType, targetId, cancellerId } = parsedMessage
                 const targetSocket = findUserSocketById(targetId)
 
-                if(userType === 'host')
+                if(cancellerType === 'host')
                     changeUserStatus(targetId, 'available')
 
                 targetSocket.send(JSON.stringify({ messageType: 'cancelRequest', cancellerType, cancellerId }))
