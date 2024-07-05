@@ -1,5 +1,6 @@
 import { useContext, useState } from "react"
 import { SocketContext } from "./SocketContext"
+import GameBoard from "./GameBoard"
 
 
 export default function Rooms({ userData }) {
@@ -23,8 +24,12 @@ export default function Rooms({ userData }) {
             if(parsedMessage.messageType === "joinRequest") {
                 const client = userList.find((user) => user.userId === parsedMessage.clientId)
 
-
                 setJoinRequests(prevRequests => [...prevRequests, client])
+            }
+
+            if(parsedMessage.messageType === "acceptRequest") {
+                if(isAwaitingResponse)
+                    setIsAwaitingResponse(false)
             }
 
         } catch (err) {
@@ -46,7 +51,7 @@ export default function Rooms({ userData }) {
     const handleRequestAccept = (e) => {
         const { value: clientId } = e.target
 
-        socket.send(JSON.stringify({ messageType: 'acceptRequest'}))
+        socket.send(JSON.stringify({ messageType: 'acceptRequest', clientId, hostId: userData.userId }))
 
         setOpponentId(clientId)
     }
@@ -83,18 +88,22 @@ export default function Rooms({ userData }) {
         {
             isAwaitingResponse 
             ?
-            <h1>Awaiting response from user {opponentData.username}.</h1>
+                <h1>Awaiting response from user {opponentData.username}.</h1>
             :
-            <div>
-                <ul>
-                    {userMap}
-                </ul>
-                {joinRequests.length > 0 && 
-                    <ul>
-                        {requestMap}
-                    </ul>
-                }
-            </div>
+                opponentId
+                ?
+                    <GameBoard />
+                :
+                    <div>
+                        <ul>
+                            {userMap}
+                        </ul>
+                        {joinRequests.length > 0 && 
+                            <ul>
+                                {requestMap}
+                            </ul>
+                        }
+                    </div>
         }
         </>
     )
