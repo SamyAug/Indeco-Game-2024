@@ -32,6 +32,18 @@ export default function Rooms({ userData }) {
                     setIsAwaitingResponse(false)
             }
 
+            if(parsedMessage.messageType === "cancelRequest") {
+                const { cancellerType, cancellerId } = parsedMessage
+
+                if(cancellerType === 'host'){
+                    setOpponentId(null)
+                    setIsAwaitingResponse(false)
+                }
+
+                if(cancellerType === 'client')
+                    setJoinRequests(prevRequests => prevRequests.filter((request) => request.userId !== cancellerId))
+            }
+
         } catch (err) {
             console.log(err)
         }
@@ -56,16 +68,15 @@ export default function Rooms({ userData }) {
         setOpponentId(clientId)
     }
 
-    const handleRequestCancel = (canceller) => {
-        const { cancellerType, targetId } = canceller
 
+    const handleRequestCancel = (cancellerType, targetId) => {
         socket.send(JSON.stringify({ messageType: 'cancelRequest', cancellerType, targetId, cancellerId: userData.userId }))
 
-        if(userType === 'host') {
-            setJoinRequests(prevRequests => prevRequests.filter((request) => request.clientId !== targetId))
+        if(cancellerType === 'host') {
+            setJoinRequests(prevRequests => prevRequests.filter((request) => request.userId !== targetId))
         }
 
-        if(userType === 'client') {
+        if(cancellerType === 'client') {
             setOpponentId(null)
             setIsAwaitingResponse(false)
         }
@@ -86,7 +97,7 @@ export default function Rooms({ userData }) {
         <li key={userId}>
             <span>{username} has requested to play with you.</span>
             <button value={userId} onClick={handleRequestAccept}>Accept</button>
-            <button onClick={() => handleRequestCancel('client', userId)}>Decline</button>
+            <button onClick={() => handleRequestCancel('host', userId)}>Decline</button>
         </li>
     ))
 
