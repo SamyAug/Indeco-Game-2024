@@ -10,10 +10,10 @@ export default function Rooms({ userData }) {
     const [opponentId, setOpponentId] = useState(null)
     const [isAwaitingResponse, setIsAwaitingResponse] = useState(false)
 
+    //TODO: fix component sometimes rendering only after user refresh message is sent (missing it)
     socket.onmessage = ({ data }) => {
         console.log("Socket data from Rooms: ", data)
 
-        //TODO: fix try catch block not always getting executed
        try {
            const parsedMessage = JSON.parse(data)
            console.log("Parsed message type: ", parsedMessage.messageType)
@@ -56,10 +56,19 @@ export default function Rooms({ userData }) {
         setOpponentId(clientId)
     }
 
-    const handleRequestDecline = (e) => {
-        const { value: clientId } = e.target
+    const handleRequestCancel = (canceller) => {
+        const { cancellerType, targetId } = canceller
 
+        socket.send(JSON.stringify({ messageType: 'cancelRequest', cancellerType, targetId, cancellerId: userData.userId }))
 
+        if(userType === 'host') {
+            setJoinRequests(prevRequests => prevRequests.filter((request) => request.clientId !== targetId))
+        }
+
+        if(userType === 'client') {
+            setOpponentId(null)
+            setIsAwaitingResponse(false)
+        }
     }
 
     const userMap = userList.map((user) => (
@@ -77,7 +86,7 @@ export default function Rooms({ userData }) {
         <li key={userId}>
             <span>{username} has requested to play with you.</span>
             <button value={userId} onClick={handleRequestAccept}>Accept</button>
-            <button value={userId} onClick={handleRequestDecline}>Decline</button>
+            <button onClick={() => handleRequestCancel('client', userId)}>Decline</button>
         </li>
     ))
 
