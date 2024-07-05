@@ -1,0 +1,11 @@
+.game-board {
+    display: grid;
+    gap: 1px; /* Adjust the gap between cells if needed */
+  }
+  .cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  
