@@ -45,7 +45,7 @@ export default function Register() {
         <>
             {errorMessage && <h1>{errorMessage}</h1>}
         {
-            userData
+            userData && userList.length > 0
             ? 
                 <Rooms userData={userData} userList={userList} />
             : 
