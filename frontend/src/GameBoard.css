@@ -2,6 +2,12 @@
     border: 2px solid gray;
 }
 
-.cell:hover {
-    border: 2px solid black;
+.cell:empty:hover {
+    border: 2px solid rgb(6, 168, 237);
+    cursor : pointer;
+}
+
+.game-over {
+    border: 2px solid gray;
+    cursor: default;
 }

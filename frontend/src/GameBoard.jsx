@@ -3,7 +3,9 @@ import { useState } from "react";
 import "./GameBoard.css";
 
 const timeBetweenMoves = 1000;
-
+let myPlayerStartsFirst;
+let winnerCombo;
+const symbols = ["X", "O"];
 const winningCombos = [
   [0, 1, 2],
   [3, 4, 5],
@@ -19,18 +21,27 @@ function calculateWinner(stateArray) {
   for (let i = 0; i < winningCombos.length; i++) {
     let winningCombo = winningCombos[i];
     const [a, b, c] = winningCombo;
-    if (stateArray[a] !== "" && stateArray[a] === stateArray[b] && stateArray[b] === stateArray[c]) return stateArray[a];
+    if (stateArray[a] !== "" && stateArray[a] === stateArray[b] && stateArray[b] === stateArray[c]) {
+      winnerCombo = winningCombo;
+      return stateArray[a];
+    }
   }
-  return "";
+  return false;
 }
 
 function existEmptyCellsOnTable(stateArray) {
   return stateArray.filter((elem) => { return elem === "" }).length > 0;
 }
 
+/**
+ * Componenta GameBoard
+ * @returns interfata pentru joc
+ */
 function GameBoard() {
   const [value, setValue] = useState("X");
+  const [mySymbol, setMySymbol] = useState("");
   const [arr, setArr] = useState(Array(9).fill(""));
+  const [showBoard, setShowBoard] = useState(false);
 
   function handleCellClick(index) {
     if (arr[index] || calculateWinner(arr)) {
@@ -44,7 +55,7 @@ function GameBoard() {
       setArr(newArrayState);
       if (!calculateWinner(newArrayState)) {
         if (existEmptyCellsOnTable(newArrayState)) {
-          setValue("O");
+          setValue((value) => value === "X" ? "O" : "X");
           setTimeout(() => { showComputerMove(newArrayState) }, timeBetweenMoves);
         }
         else return;
@@ -59,9 +70,9 @@ function GameBoard() {
       if (newArrayState[randomIndex] === "") randomAvailableIndex = randomIndex;
     }
     let newArray = newArrayState.slice();
-    newArray[randomAvailableIndex] = "O";
+    newArray[randomAvailableIndex] = mySymbol === "X" ? "O" : "X";
     setArr(newArray);
-    setValue("X");
+    setValue((value) => value === "X" ? "O" : "X");
   }
 
   function calculateGameStatus() {
@@ -73,36 +84,74 @@ function GameBoard() {
     else return `Next player: ${value}`;
   }
 
+  /// Tema: La Joc nou sa se inceapa cu simbolul corect
   function resetGame() {
     setValue("X");
-    setArr(Array(9).fill(""));
+    winnerCombo = Array(3).fill("");
+    const resetedArray = Array(9).fill("");
+    setArr(resetedArray);
+    const newSymbol = Math.random() > 0.5 ? "X" : "O"; 
+    setMySymbol(newSymbol);
+    if (newSymbol === "O") {
+      showComputerMove(resetedArray);
+    }
+  }
+
+  function isGameOver() {
+    return !calculateGameStatus().includes("Next");
+  }
+
+  function startGame(){
+    setShowBoard(true);
+    myPlayerStartsFirst = Math.random() > 0.5 ? true : false;
+
+    if(myPlayerStartsFirst){
+      setMySymbol("X");
+      return;
+    }
+    else {
+      setMySymbol("O")
+      showComputerMove(arr);
+    }
   }
 
   return (
     <>
-      <div className="container">
-        {calculateGameStatus()}
-        {value === "O" ? (<div className="spinner-border text-secondary" role="status">
-          <span className="sr-only">Waiting for partner...</span>
-        </div>
-        ) : null}
-        <div className="row">
-          {arr.map((element, index) => (
-            <div
-              className={`col-4 text-center align-content-center fw-bold fs-1 cell ${value === "O" ? 'pe-none' : ''}`}
-              onClick={() => handleCellClick(index)}
-              key={index}
-              style={{ aspectRatio: "1 / 1" }}
-            >
-              {element}
+      {!showBoard ? (<div className="text-center mt-3">
+        <button className="btn btn-warning w-50" onClick={startGame}>Start Game</button>
+      </div>) : (<>
+        <div className="d-flex justify-content-between">
+          <h5>{calculateGameStatus()}</h5>
+          <div className={`d-flex ${value === mySymbol ? 'visually-hidden' : ''}`}>
+            <span>Waiting for partner...</span>
+            <div className="spinner-border text-secondary ms-3" role="status">
             </div>
-          ))}
+          </div>
         </div>
-      </div>
-      {!calculateGameStatus().includes("Next") ? (<div className="container">
-        <button className="btn btn-warning" onClick={resetGame}>Joc nou</button>
-      </div>) : null}
 
+        <div className="container">
+          <div className="row">
+            {arr.map((element, index) => (
+              <div
+                className={`col-4 text-center align-content-center fw-bold fs-1 
+                ${isGameOver() ? 'game-over' : 'cell'} 
+                ${value !== mySymbol ? 'pe-none' : ''}
+                ${winnerCombo?.includes(index) ? 'bg-success' : ''}
+                `}
+                onClick={() => handleCellClick(index)}
+                key={index}
+                style={{ aspectRatio: "1 / 1" }}
+              >
+                {element}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {isGameOver() ? (<div className="text-center mt-3">
+          <button className="btn btn-warning w-50" onClick={resetGame}>Joc nou</button>
+        </div>) : null}
+      </>)}
     </>
   );
 }
