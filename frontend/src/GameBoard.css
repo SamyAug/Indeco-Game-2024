@@ -1,11 +1,13 @@
-.game-board {
-    display: grid;
-    gap: 1px; /* Adjust the gap between cells if needed */
-  }
-  .cell {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-  }
-  
+.cell{
+    border: 2px solid gray;
+}
+
+.cell:empty:hover {
+    border: 2px solid rgb(6, 168, 237);
+    cursor : pointer;
+}
+
+.game-over {
+    border: 2px solid gray;
+    cursor: default;
+}
