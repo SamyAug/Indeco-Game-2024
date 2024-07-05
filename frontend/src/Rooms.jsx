@@ -82,6 +82,7 @@ export default function Rooms({ userData }) {
         }
     }
 
+    //TODO: destructure user object, only send id in request
     const userMap = userList.map((user) => (
         <li key={user.userId}>
             {user.username}
@@ -108,7 +109,10 @@ export default function Rooms({ userData }) {
         {
             isAwaitingResponse 
             ?
-                <h1>Awaiting response from user {opponentData.username}.</h1>
+                <div className="container">
+                    <h1>Awaiting response from user {opponentData.username}.</h1>
+                    <button onClick={() => handleRequestCancel('client', opponentData.userId)}>Cancel</button>
+                </div>
             :
                 opponentId
                 ?
