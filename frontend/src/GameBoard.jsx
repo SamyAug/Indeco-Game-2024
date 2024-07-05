@@ -1,8 +1,10 @@
-
 import { useState } from "react";
 import "./GameBoard.css";
 
 const timeBetweenMoves = 1000;
+
+const symbols = ["X", "O"];
+let myPlayer;
 
 const winningCombos = [
   [0, 1, 2],
@@ -31,11 +33,10 @@ function existEmptyCellsOnTable(stateArray) {
 function GameBoard() {
   const [value, setValue] = useState("X");
   const [arr, setArr] = useState(Array(9).fill(""));
+  const [shouldStartGame, setShouldStartGame] = useState(false);
 
   function handleCellClick(index) {
-    if (arr[index] || calculateWinner(arr)) {
-      return;
-    }
+    if (arr[index] || calculateWinner(arr)) return;
     else {
       let newArrayState = arr.map((element, indexElem) => {
         if (index === indexElem) return value;
@@ -59,9 +60,9 @@ function GameBoard() {
       if (newArrayState[randomIndex] === "") randomAvailableIndex = randomIndex;
     }
     let newArray = newArrayState.slice();
-    newArray[randomAvailableIndex] = "O";
+    newArray[randomAvailableIndex] = value;
     setArr(newArray);
-    setValue("X");
+    setValue(value === "X" ? "O" : "X");
   }
 
   function calculateGameStatus() {
@@ -73,21 +74,40 @@ function GameBoard() {
     else return `Next player: ${value}`;
   }
 
+  function isGameOver() {
+    // return true if game is over
+    // return false otherwise
+    return !calculateGameStatus().includes("Next");
+  }
+
   function resetGame() {
     setValue("X");
     setArr(Array(9).fill(""));
   }
 
+  function startGame() {
+    setShouldStartGame(true);
+    const myPlayer = symbols[Math.floor(Math.random() * 2)];
+    console.log(myPlayer);
+    if (myPlayer === "X") return;
+    else showComputerMove(arr);
+  }
+
   return (
     <>
-      {(value === "O" && existEmptyCellOnTable(arr)) ? <div>Loading...</div> : null}
-      <div className="container">
-        {calculateGameStatus()}
-        {value === "O" ? (<div className="spinner-border text-secondary" role="status">
-          <span className="sr-only">Waiting for partner...</span>
+      {shouldStartGame === false ? (
+        <div className="mt-4 d-flex justify-content-center">
+          <button className="btn btn-primary" onClick={startGame}>Play game</button>
         </div>
+      ) : (<div className="container">
+        {<div>{calculateGameStatus()}</div>}
+        {value === "O" ? (
+          <div>
+            <span> Waiting for opponet to move ... </span>
+            <span className="spinner-border text-secondary" role="status"> </span>
+          </div>
         ) : null}
-        <div className="row">
+        <div className={`row ${isGameOver() ? 'game-over' : ''} `}>
           {arr.map((element, index) => (
             <div
               className={`col-4 text-center align-content-center fw-bold fs-1 cell ${value === "O" ? 'pe-none' : ''}`}
@@ -99,10 +119,12 @@ function GameBoard() {
             </div>
           ))}
         </div>
-      </div>
-      {!calculateGameStatus().includes("Next") ? (<div className="container">
-        <button className="btn btn-warning" onClick={resetGame}>Joc nou</button>
-      </div>) : null}
+        {isGameOver() ? (
+          <div className="mt-4 d-flex justify-content-center">
+            <button className="btn btn-warning" onClick={resetGame}>Play again</button>
+          </div>
+        ) : null}
+      </div>)}
 
     </>
   );
