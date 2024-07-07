@@ -37,6 +37,7 @@ app.ws.use(function (ctx, next) {
 // Using routes
 app.ws.use(route.all('/', function (ctx) {
     ctx.websocket.send(JSON.stringify({ messageType: 'connection', message: 'Connected to WebSocket successfully.'}));
+
     ctx.websocket.on('message', function (message) {
         // do something with the message from client
         try {
@@ -59,6 +60,9 @@ app.ws.use(route.all('/', function (ctx) {
                     broadcastUserRefresh()
                 }
             }
+
+            if(parsedMessage.messageType === 'userRefresh')
+                ctx.websocket.send(JSON.stringify({ messageType: 'userRefresh', users }))
 
             if(parsedMessage.messageType === 'joinRequest'){
                 const { clientId, hostId } = parsedMessage
@@ -99,9 +103,10 @@ app.ws.use(route.all('/', function (ctx) {
             console.log(err)
         }
     });
+    //TODO: handle user disconnects, eventually reconnection attempts on unintentional disconnect
+
 }));
 
-//TODO: handle user disconnects
 
 app.use(serve({
     dir: '../frontend/dist',

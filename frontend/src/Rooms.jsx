@@ -1,4 +1,4 @@
-import { useContext, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { SocketContext } from "./SocketContext"
 import GameBoard from "./GameBoard"
 
@@ -9,15 +9,15 @@ export default function Rooms({ userData }) {
     const [joinRequests, setJoinRequests] = useState([])
     const [opponentId, setOpponentId] = useState(null)
     const [isAwaitingResponse, setIsAwaitingResponse] = useState(false)
-
-    //TODO: fix component sometimes rendering only after user refresh message is sent (missing it)
+ 
     socket.onmessage = ({ data }) => {
         console.log("Socket data from Rooms: ", data)
 
        try {
-           const parsedMessage = JSON.parse(data)
-           console.log("Parsed message type: ", parsedMessage.messageType)
+            const parsedMessage = JSON.parse(data)
+            console.log("Parsed message type: ", parsedMessage.messageType)
 
+            //TODO: change this to a switch with separate functions
             if(parsedMessage.messageType === "userRefresh")
                 setUserList(parsedMessage.users)
 
@@ -39,15 +39,23 @@ export default function Rooms({ userData }) {
                     setOpponentId(null)
                     setIsAwaitingResponse(false)
                 }
-
+                
                 if(cancellerType === 'client')
                     setJoinRequests(prevRequests => prevRequests.filter((request) => request.userId !== cancellerId))
             }
+            
+            if(parsedMessage.messageType === "disconnect")
+                console.log(parsedMessage)
 
         } catch (err) {
             console.log(err)
         }
     }
+
+    useEffect(() => {
+        if(!userList.length)
+            socket.send(JSON.stringify({ messageType: 'userRefresh' }))
+    }, [])
 
     console.log("User list: ", userList)
 
