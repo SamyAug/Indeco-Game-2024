@@ -6,8 +6,8 @@ const app = websockify(new Koa());
 const { randomUUID } = require('crypto')
 
 let users = []
-const sockets = []
-const rooms = []
+let sockets = []
+let rooms = []
 
 const broadcast = (message) => {
     sockets.map(({ socket }) => socket.send(message))
@@ -36,6 +36,8 @@ app.ws.use(function (ctx, next) {
 
 // Using routes
 app.ws.use(route.all('/', function (ctx) {
+    const userId = randomUUID()
+    console.log("Opened socket", userId)
     ctx.websocket.send(JSON.stringify({ messageType: 'connection', message: 'Connected to WebSocket successfully.'}));
 
     ctx.websocket.on('message', function (message) {
@@ -49,7 +51,6 @@ app.ws.use(route.all('/', function (ctx) {
                 if(users.findIndex((user) => user.username === registerAs) >= 0) {
                     ctx.websocket.send(JSON.stringify({ messageType: 'registerError', message:"User with this name already exists." }));
                 } else {
-                    const userId = randomUUID()
                     //TODO: add user state (available/busy) to user object
                     const newUser = { userId, username: registerAs, userStatus: 'available' }
 
@@ -104,7 +105,17 @@ app.ws.use(route.all('/', function (ctx) {
         }
     });
     //TODO: handle user disconnects, eventually reconnection attempts on unintentional disconnect
+    
+    ctx.websocket.on('close', () => {
+        const registeredSocket = sockets.find((socket) => socket.userId === userId)
+        console.log()
 
+        if(registeredSocket) {
+            sockets = sockets.filter((socket) => socket.userId !== userId)
+            users = users.filter((user) => user.userId !== userId)
+            broadcastUserRefresh();
+        }
+    })
 }));
 
 
