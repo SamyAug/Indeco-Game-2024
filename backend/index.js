@@ -62,17 +62,41 @@ app.ws.use(route.all('/', function (ctx) {
                 handleAuthenticationRequest(parsedMessage, ctx, userId)
             } else if (parsedMessage.messageType === 'userRefresh')
                 ctx.websocket.send(JSON.stringify({ messageType: 'userRefresh', users }))
-            else if (!users.find((user) => user.userId === userId)) {
-                ctx.websocket.send(JSON.stringify({ messageType: 'authentication', message: 'You need to authenticate first.' }))
-            } else {
-                // get each receiver socket for the message
-                let { receivers, message } = parsedMessage;
-                if (!Array.isArray(receivers)) ctx.websocket.send(JSON.stringify({ error: 'error', message: 'Receivers must be an array' }));
-                receivers.forEach(receiver => {
-                    const receiverSocket = findUserSocketById(receiver);
-                    if (receiverSocket) receiverSocket.send(JSON.stringify({ sender: userId, message }));
-                    else ctx.websocket.send(JSON.stringify({ error: 'error', message: `Receiver ${receiver} not found` }));
-                });
+
+            if(parsedMessage.messageType === 'joinRequest'){
+                const { clientId, hostId } = parsedMessage
+                const hostSocket = findUserSocketById(hostId)
+
+                users = users.map((user) => {
+                    return user.userId === clientId ? {...user, userStatus: 'busy'} : user
+                })
+
+                changeUserStatus(clientId, 'busy')
+
+                hostSocket.send(JSON.stringify({ messageType: 'joinRequest', clientId }))
+            }
+
+            if(parsedMessage.messageType === 'acceptRequest') {
+                const { clientId, hostId } = parsedMessage
+                const hostSocket = ctx.websocket
+                const clientSocket = findUserSocketById(clientId)
+                const roomId = randomUUID()
+
+                rooms.push({ roomId, hostSocket, clientSocket })
+
+                changeUserStatus(hostId, 'busy')
+
+                hostSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId }))
+                clientSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId }))
+            }
+
+            if(parsedMessage.messageType === 'cancelRequest') {
+                const { cancellerType, targetId, cancellerId } = parsedMessage
+                const targetSocket = findUserSocketById(targetId)
+
+                changeUserStatus(cancellerType === 'host' ? targetId : cancellerId, 'available')
+
+                targetSocket.send(JSON.stringify({ messageType: 'cancelRequest', cancellerType, cancellerId }))
             }
 
             // TODO: game room message handling
@@ -88,10 +112,18 @@ app.ws.use(route.all('/', function (ctx) {
         }
     });
     //TODO: handle user disconnects, eventually reconnection attempts on unintentional disconnect
-    ctx.websocket.on('close', () => broadcastRemovedUser(userId)) // daca se inchide conexiunea, stergem userul din lista, si notificam restul userilor
+    
+    ctx.websocket.on('close', () => {
+        const registeredSocket = sockets.find((socket) => socket.userId === userId)
+        console.log()
+
+        if(registeredSocket) {
+            sockets = sockets.filter((socket) => socket.userId !== userId)
+            users = users.filter((user) => user.userId !== userId)
+            broadcastUserRefresh();
+        }
+    })
 }));
-
-
 
 
 app.use(serve({
