@@ -18,8 +18,11 @@ export default function Rooms({ userData }) {
             console.log("Parsed message type: ", parsedMessage.messageType)
 
             //TODO: change this to a switch with separate functions
-            if(parsedMessage.messageType === "userRefresh")
-                setUserList(parsedMessage.users)
+            if(parsedMessage.messageType === "userRefresh") {
+                const filteredSelf = parsedMessage.users.filter((user) => user.userId !== userData.userId)
+                
+                setUserList(filteredSelf)
+            }
 
             if(parsedMessage.messageType === "joinRequest") {
                 const client = userList.find((user) => user.userId === parsedMessage.clientId)
@@ -70,8 +73,9 @@ export default function Rooms({ userData }) {
 
     const handleRequestAccept = (e) => {
         const { value: clientId } = e.target
+        const isMoving = Math.random() >= 0.5
 
-        socket.send(JSON.stringify({ messageType: 'acceptRequest', clientId, hostId: userData.userId }))
+        socket.send(JSON.stringify({ messageType: 'acceptRequest', clientId, hostId: userData.userId, isMoving }))
 
         setOpponentId(clientId)
     }
@@ -128,9 +132,15 @@ export default function Rooms({ userData }) {
                     <GameBoard />
                 :
                     <div>
-                        <ul>
-                            {userMap}
-                        </ul>
+                        {
+                            userList.length > 0
+                            ?
+                                <ul>
+                                    {userMap}
+                                </ul>
+                            :
+                                <h1>No other users are currently online.</h1>
+                        }
                         {joinRequests.length > 0 && 
                             <ul>
                                 {requestMap}

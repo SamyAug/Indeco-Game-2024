@@ -74,6 +74,15 @@ app.ws.use(route.all('/', function (ctx) {
                     else ctx.websocket.send(JSON.stringify({ error: 'error', message: `Receiver ${receiver} not found` }));
                 });
             }
+
+            // TODO: game room message handling
+            if(parsedMessage.messageType === 'gameUpdate') {
+                const { roomId, gameData } = parsedMessage
+                const currentRoom = rooms.find(room => room.roomId === roomId)
+
+                currentRoom.hostSocket.send(JSON.stringify({ messageType: 'gameUpdate', gameData }))
+                currentRoom.clientSocket.send(JSON.stringify({ messageType: 'gameUpdate', gameData }))
+            }
         } catch (err) {
             console.log(err)
         }
