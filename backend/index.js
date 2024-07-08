@@ -108,7 +108,6 @@ app.ws.use(route.all('/', function (ctx) {
     
     ctx.websocket.on('close', () => {
         const registeredSocket = sockets.find((socket) => socket.userId === userId)
-        console.log()
 
         if(registeredSocket) {
             sockets = sockets.filter((socket) => socket.userId !== userId)
