@@ -79,19 +79,23 @@ app.ws.use(route.all('/', function (ctx) {
             }
 
             if(parsedMessage.messageType === 'acceptRequest') {
-                const { clientId, hostId } = parsedMessage
+                const { clientId, hostId, isMoving } = parsedMessage
                 const hostSocket = ctx.websocket
                 const clientSocket = findUserSocketById(clientId)
-                const roomId = randomUUID()
+
                 const gameStatus = Array(9).fill('')
-                const roomData = { roomId, hostSocket, clientSocket, gameStatus }
+                const gameTurn = isMoving ? 'host' : 'client'
+                const gameData = { gameStatus, gameTurn }
+
+                const roomId = randomUUID()
+                const roomData = { roomId, hostSocket, clientSocket, gameData }
 
                 rooms.push(roomData)
 
                 changeUserStatus(hostId, 'busy')
 
-                hostSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId, gameStatus }))
-                clientSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId, gameStatus }))
+                hostSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId, gameData }))
+                clientSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId, gameData }))
             }
 
             if(parsedMessage.messageType === 'cancelRequest') {
@@ -104,7 +108,13 @@ app.ws.use(route.all('/', function (ctx) {
             }
 
             // TODO: game room message handling
+            if(parsedMessage.messageType === 'gameUpdate') {
+                const { roomId, gameData } = parsedMessage
+                const currentRoom = rooms.find(room => room.roomId === roomId)
 
+                currentRoom.hostSocket.send(JSON.stringify({ messageType: 'gameUpdate', gameData }))
+                currentRoom.clientSocket.send(JSON.stringify({ messageType: 'gameUpdate', gameData }))
+            }
         } catch (err) {
             console.log(err)
         }
