@@ -51,7 +51,6 @@ app.ws.use(route.all('/', function (ctx) {
                 if(users.findIndex((user) => user.username === registerAs) >= 0) {
                     ctx.websocket.send(JSON.stringify({ messageType: 'registerError', message:"User with this name already exists." }));
                 } else {
-                    //TODO: add user state (available/busy) to user object
                     const newUser = { userId, username: registerAs, userStatus: 'available' }
 
                     users.push(newUser)
@@ -65,6 +64,7 @@ app.ws.use(route.all('/', function (ctx) {
             if(parsedMessage.messageType === 'userRefresh')
                 ctx.websocket.send(JSON.stringify({ messageType: 'userRefresh', users }))
 
+            // request message handling
             if(parsedMessage.messageType === 'joinRequest'){
                 const { clientId, hostId } = parsedMessage
                 const hostSocket = findUserSocketById(hostId)
@@ -83,13 +83,15 @@ app.ws.use(route.all('/', function (ctx) {
                 const hostSocket = ctx.websocket
                 const clientSocket = findUserSocketById(clientId)
                 const roomId = randomUUID()
+                const gameStatus = Array(9).fill('')
+                const roomData = { roomId, hostSocket, clientSocket, gameStatus }
 
-                rooms.push({ roomId, hostSocket, clientSocket })
+                rooms.push(roomData)
 
                 changeUserStatus(hostId, 'busy')
 
-                hostSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId }))
-                clientSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId }))
+                hostSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId, gameStatus }))
+                clientSocket.send(JSON.stringify({ messageType: 'acceptRequest', roomId, gameStatus }))
             }
 
             if(parsedMessage.messageType === 'cancelRequest') {
@@ -100,6 +102,9 @@ app.ws.use(route.all('/', function (ctx) {
 
                 targetSocket.send(JSON.stringify({ messageType: 'cancelRequest', cancellerType, cancellerId }))
             }
+
+            // TODO: game room message handling
+
         } catch (err) {
             console.log(err)
         }
