@@ -1,0 +1,11 @@
+.cell {
+    border: 5px solid #9ec5fe;
+}
+
+.cell:hover:empty {
+    border: 5px solid rgb(13, 110, 253);
+}
+
+.not-ready {
+    border: 5px solid #9ec5fe;
+}
