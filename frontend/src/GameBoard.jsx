@@ -1,13 +1,8 @@
+
 import { useState } from "react";
 import "./GameBoard.css";
 
 const timeBetweenMoves = 1000;
-
-const symbols = ["X", "O"];
-let myPlayer;
-let myPlayerStartsFirst;
-let winnerCombo;
-const symbols = ["X", "O"];
 const winningCombos = [
   [0, 1, 2],
   [3, 4, 5],
@@ -24,8 +19,10 @@ function calculateWinner(stateArray) {
     let winningCombo = winningCombos[i];
     const [a, b, c] = winningCombo;
     if (stateArray[a] !== "" && stateArray[a] === stateArray[b] && stateArray[b] === stateArray[c]) {
-      winnerCombo = winningCombo;
-      return stateArray[a];
+      return {
+        winner : stateArray[a],
+        winningCombo : winningCombo
+      };
     }
   }
   return false;
@@ -46,7 +43,9 @@ function GameBoard() {
   const [showBoard, setShowBoard] = useState(false);
 
   function handleCellClick(index) {
-    if (arr[index] || calculateWinner(arr)) return;
+    if (arr[index] || calculateWinner(arr)) {
+      return;
+    }
     else {
       let newArrayState = arr.map((element, indexElem) => {
         if (index === indexElem) return value;
@@ -56,27 +55,27 @@ function GameBoard() {
       if (!calculateWinner(newArrayState)) {
         if (existEmptyCellsOnTable(newArrayState)) {
           setValue((value) => value === "X" ? "O" : "X");
-          setTimeout(() => { showComputerMove(newArrayState) }, timeBetweenMoves);
+          setTimeout(() => { showComputerMove(newArrayState, mySymbol === "X" ? "O" : "X") }, timeBetweenMoves);
         }
         else return;
       }
     }
   }
 
-  function showComputerMove(newArrayState) {
+  function showComputerMove(newArrayState, newSymbol) {
     let randomAvailableIndex = null;
     while (randomAvailableIndex === null) {
       let randomIndex = Math.floor(Math.random() * 9);
       if (newArrayState[randomIndex] === "") randomAvailableIndex = randomIndex;
     }
     let newArray = newArrayState.slice();
-    newArray[randomAvailableIndex] = mySymbol === "X" ? "O" : "X";
+    newArray[randomAvailableIndex] = newSymbol;
     setArr(newArray);
     setValue((value) => value === "X" ? "O" : "X");
   }
 
   function calculateGameStatus() {
-    let winner = calculateWinner(arr);
+    let winner = calculateWinner(arr).winner;
     if (winner) {
       return `Player ${winner} won`;
     }
@@ -84,23 +83,14 @@ function GameBoard() {
     else return `Next player: ${value}`;
   }
 
-  function isGameOver() {
-    // return true if game is over
-    // return false otherwise
-    return !calculateGameStatus().includes("Next");
-  }
-
   /// Tema: La Joc nou sa se inceapa cu simbolul corect
   function resetGame() {
     setValue("X");
-    winnerCombo = Array(3).fill("");
     const resetedArray = Array(9).fill("");
     setArr(resetedArray);
     const newSymbol = Math.random() > 0.5 ? "X" : "O"; 
     setMySymbol(newSymbol);
-    if (newSymbol === "O") {
-      showComputerMove(resetedArray);
-    }
+    if (newSymbol === "O") showComputerMove(resetedArray, "X");
   }
 
   function isGameOver() {
@@ -109,7 +99,7 @@ function GameBoard() {
 
   function startGame(){
     setShowBoard(true);
-    myPlayerStartsFirst = Math.random() > 0.5 ? true : false;
+    let myPlayerStartsFirst = Math.random() > 0.5 ? true : false;
 
     if(myPlayerStartsFirst){
       setMySymbol("X");
@@ -117,16 +107,8 @@ function GameBoard() {
     }
     else {
       setMySymbol("O")
-      showComputerMove(arr);
+      showComputerMove(arr, "X");
     }
-  }
-
-  function startGame() {
-    setShouldStartGame(true);
-    const myPlayer = symbols[Math.floor(Math.random() * 2)];
-    console.log(myPlayer);
-    if (myPlayer === "X") return;
-    else showComputerMove(arr);
   }
 
   return (
@@ -150,12 +132,12 @@ function GameBoard() {
                 className={`col-4 text-center align-content-center fw-bold fs-1 
                 ${isGameOver() ? 'game-over' : 'cell'} 
                 ${value !== mySymbol ? 'pe-none' : ''}
-                ${winnerCombo?.includes(index) ? 'bg-success' : ''}
+                ${calculateWinner(arr).winningCombo?.includes(index) ? 'bg-success' : ''}
                 `}
                 onClick={() => handleCellClick(index)}
                 key={index}
                 style={{ aspectRatio: "1 / 1" }}
-              >
+              > 
                 {element}
               </div>
             ))}
