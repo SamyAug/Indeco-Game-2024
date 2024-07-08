@@ -1,13 +1,11 @@
-.cell{
-    border: 2px solid gray;
+.cell {
+    border: 5px solid #9ec5fe;
 }
 
-.cell:empty:hover {
-    border: 2px solid rgb(6, 168, 237);
-    cursor : pointer;
+.cell:hover:empty {
+    border: 5px solid rgb(13, 110, 253);
 }
 
-.game-over {
-    border: 2px solid gray;
-    cursor: default;
+.not-ready {
+    border: 5px solid #9ec5fe;
 }

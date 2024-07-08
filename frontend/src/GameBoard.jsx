@@ -1,11 +1,6 @@
-
 import { useState } from "react";
 import "./GameBoard.css";
-
 const timeBetweenMoves = 1000;
-let myPlayerStartsFirst;
-let winnerCombo;
-const symbols = ["X", "O"];
 const winningCombos = [
   [0, 1, 2],
   [3, 4, 5],
@@ -14,23 +9,31 @@ const winningCombos = [
   [1, 4, 7],
   [2, 5, 8],
   [0, 4, 8],
-  [2, 4, 6]
+  [2, 4, 6],
 ];
 
 function calculateWinner(stateArray) {
   for (let i = 0; i < winningCombos.length; i++) {
     let winningCombo = winningCombos[i];
     const [a, b, c] = winningCombo;
-    if (stateArray[a] !== "" && stateArray[a] === stateArray[b] && stateArray[b] === stateArray[c]) {
-      winnerCombo = winningCombo;
-      return stateArray[a];
+    if (
+      stateArray[a] !== "" &&
+      stateArray[a] === stateArray[b] &&
+      stateArray[b] === stateArray[c]
+    ) {
+      return { winner: stateArray[a], winningCombo: winningCombo };
+
     }
   }
   return false;
 }
 
 function existEmptyCellsOnTable(stateArray) {
-  return stateArray.filter((elem) => { return elem === "" }).length > 0;
+  return (
+    stateArray.filter((elem) => {
+      return elem === "";
+    }).length > 0
+  );
 }
 
 /**
@@ -46,54 +49,52 @@ function GameBoard() {
   function handleCellClick(index) {
     if (arr[index] || calculateWinner(arr)) {
       return;
-    }
-    else {
+    } else {
       let newArrayState = arr.map((element, indexElem) => {
         if (index === indexElem) return value;
         return element;
       });
       setArr(newArrayState);
-      if (!calculateWinner(newArrayState)) {
-        if (existEmptyCellsOnTable(newArrayState)) {
-          setValue((value) => value === "X" ? "O" : "X");
-          setTimeout(() => { showComputerMove(newArrayState) }, timeBetweenMoves);
-        }
-        else return;
+      if (
+        !calculateWinner(newArrayState) &&
+        existEmptyCellsOnTable(newArrayState)
+      ) {
+        setValue((value) => (value === "X" ? "O" : "X"));
+        setTimeout(() => {
+          showComputerMove(newArrayState, value === "X" ? "O" : "X");
+        }, timeBetweenMoves);
       }
     }
   }
 
-  function showComputerMove(newArrayState) {
+  function showComputerMove(newArrayState, computerSymbol) {
     let randomAvailableIndex = null;
     while (randomAvailableIndex === null) {
       let randomIndex = Math.floor(Math.random() * 9);
       if (newArrayState[randomIndex] === "") randomAvailableIndex = randomIndex;
     }
-    let newArray = newArrayState.slice();
-    newArray[randomAvailableIndex] = mySymbol === "X" ? "O" : "X";
+    let newArray = [...newArrayState];
+    newArray[randomAvailableIndex] = computerSymbol;
     setArr(newArray);
-    setValue((value) => value === "X" ? "O" : "X");
+    setValue((value) => (value === "X" ? "O" : "X"));
   }
 
   function calculateGameStatus() {
-    let winner = calculateWinner(arr);
+    let winner = calculateWinner(arr).winner;
     if (winner) {
       return `Player ${winner} won`;
-    }
-    else if (existEmptyCellsOnTable(arr) === false) return "It's a draw";
+    } else if (existEmptyCellsOnTable(arr) === false) return "It's a draw";
     else return `Next player: ${value}`;
   }
 
-  /// Tema: La Joc nou sa se inceapa cu simbolul corect
   function resetGame() {
     setValue("X");
-    winnerCombo = Array(3).fill("");
     const resetedArray = Array(9).fill("");
     setArr(resetedArray);
-    const newSymbol = Math.random() > 0.5 ? "X" : "O"; 
+    const newSymbol = Math.random() > 0.5 ? "X" : "O";
     setMySymbol(newSymbol);
     if (newSymbol === "O") {
-      showComputerMove(resetedArray);
+      showComputerMove(resetedArray, "X");
     }
   }
 
@@ -101,57 +102,81 @@ function GameBoard() {
     return !calculateGameStatus().includes("Next");
   }
 
-  function startGame(){
+  function startGame() {
     setShowBoard(true);
-    myPlayerStartsFirst = Math.random() > 0.5 ? true : false;
+    const myPlayerStartsFirst = Math.random() > 0.5 ? true : false;
 
-    if(myPlayerStartsFirst){
+    if (myPlayerStartsFirst) {
       setMySymbol("X");
       return;
-    }
-    else {
-      setMySymbol("O")
-      showComputerMove(arr);
+    } else {
+      setMySymbol("O");
+      showComputerMove(arr, "X");
     }
   }
 
   return (
     <>
-      {!showBoard ? (<div className="text-center mt-3">
-        <button className="btn btn-warning w-50" onClick={startGame}>Start Game</button>
-      </div>) : (<>
-        <div className="d-flex justify-content-between">
-          <h5>{calculateGameStatus()}</h5>
-          <div className={`d-flex ${value === mySymbol ? 'visually-hidden' : ''}`}>
-            <span>Waiting for partner...</span>
-            <div className="spinner-border text-secondary ms-3" role="status">
+      {!showBoard ? (
+        <div className="text-center mt-3">
+          <button className="btn btn-warning w-50" onClick={startGame}>
+            Start Game
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="d-flex justify-content-between">
+            <h5>{calculateGameStatus()}</h5>
+            <div
+              className={`d-flex ${
+                value === mySymbol ? "visually-hidden" : ""
+              }`}
+            >
+              <span>Waiting for partner...</span>
+              <div
+                className="spinner-border text-secondary ms-3"
+                role="status"
+              ></div>
             </div>
           </div>
-        </div>
 
-        <div className="container">
-          <div className="row">
-            {arr.map((element, index) => (
-              <div
-                className={`col-4 text-center align-content-center fw-bold fs-1 
-                ${isGameOver() ? 'game-over' : 'cell'} 
-                ${value !== mySymbol ? 'pe-none' : ''}
-                ${winnerCombo?.includes(index) ? 'bg-success' : ''}
+          <div className="container">
+            <div className="row border border-5 border-primary-subtle">
+              {arr.map((element, index) => (
+                <div
+                  className={`col-4 text-center align-content-center fw-bold fs-1 user-select-none
+                ${
+                  value !== mySymbol || isGameOver()
+                    ? "not-ready pe-none"
+                    : "cell"
+                }
+                ${
+                  calculateWinner(arr)?.winningCombo?.includes(index)
+                    ? "bg-success text-light"
+                    : !arr.includes("") && calculateGameStatus() === "It's a draw"
+                    ? "bg-warning"
+                    : ""
+                }
                 `}
-                onClick={() => handleCellClick(index)}
-                key={index}
-                style={{ aspectRatio: "1 / 1" }}
-              >
-                {element}
-              </div>
-            ))}
+                  onClick={() => handleCellClick(index)}
+                  key={index}
+                  style={{ aspectRatio: "1 / 1" }}
+                >
+                  {element}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {isGameOver() ? (<div className="text-center mt-3">
-          <button className="btn btn-warning w-50" onClick={resetGame}>Joc nou</button>
-        </div>) : null}
-      </>)}
+          {isGameOver() ? (
+            <div className="text-center mt-3">
+              <button className="btn btn-warning w-50" onClick={resetGame}>
+                Joc nou
+              </button>
+            </div>
+          ) : null}
+        </>
+      )}
     </>
   );
 }
