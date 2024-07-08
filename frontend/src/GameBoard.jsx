@@ -22,7 +22,6 @@ function calculateWinner(stateArray) {
       stateArray[b] === stateArray[c]
     ) {
       return { winner: stateArray[a], winningCombo: winningCombo };
-
     }
   }
   return false;
@@ -40,11 +39,12 @@ function existEmptyCellsOnTable(stateArray) {
  * Componenta GameBoard
  * @returns interfata pentru joc
  */
-function GameBoard() {
+// eslint-disable-next-line react/prop-types
+function GameBoard({ handleGameStatus, handleShowLoading }) {
   const [value, setValue] = useState("X");
   const [mySymbol, setMySymbol] = useState("");
   const [arr, setArr] = useState(Array(9).fill(""));
-  const [showBoard, setShowBoard] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
 
   function handleCellClick(index) {
     if (arr[index] || calculateWinner(arr)) {
@@ -82,9 +82,17 @@ function GameBoard() {
   function calculateGameStatus() {
     let winner = calculateWinner(arr).winner;
     if (winner) {
+      handleGameStatus(`Player ${winner} won`);
       return `Player ${winner} won`;
-    } else if (existEmptyCellsOnTable(arr) === false) return "It's a draw";
-    else return `Next player: ${value}`;
+    } else if (existEmptyCellsOnTable(arr) === false) {
+      handleGameStatus("It's a draw");
+      return "It's a draw";
+    } else if (gameStarted) {
+      handleGameStatus(`Next player: ${value}`);
+      handleShowLoading(value !== mySymbol);
+      return `Next player: ${value}`;
+    }
+    return "";
   }
 
   function resetGame() {
@@ -99,11 +107,15 @@ function GameBoard() {
   }
 
   function isGameOver() {
-    return !calculateGameStatus().includes("Next");
+    // Actualizam si statusul cand verificam daca e sfarsit de joc
+    calculateGameStatus();
+    const winner = calculateWinner(arr).winner;
+    // daca am castigator sau tabla nu mai este goala, s-a sfarsit jocul
+    return (winner || !existEmptyCellsOnTable(arr));
   }
 
   function startGame() {
-    setShowBoard(true);
+    setGameStarted(true);
     const myPlayerStartsFirst = Math.random() > 0.5 ? true : false;
 
     if (myPlayerStartsFirst) {
@@ -114,37 +126,13 @@ function GameBoard() {
       showComputerMove(arr, "X");
     }
   }
-
   return (
     <>
-      {!showBoard ? (
-        <div className="text-center mt-3">
-          <button className="btn btn-warning w-50" onClick={startGame}>
-            Start Game
-          </button>
-        </div>
-      ) : (
-        <>
-          <div className="d-flex justify-content-between">
-            <h5>{calculateGameStatus()}</h5>
+      <div className="container">
+        <div className="row border border-5 border-primary-subtle">
+          {arr.map((element, index) => (
             <div
-              className={`d-flex ${
-                value === mySymbol ? "visually-hidden" : ""
-              }`}
-            >
-              <span>Waiting for partner...</span>
-              <div
-                className="spinner-border text-secondary ms-3"
-                role="status"
-              ></div>
-            </div>
-          </div>
-
-          <div className="container">
-            <div className="row border border-5 border-primary-subtle">
-              {arr.map((element, index) => (
-                <div
-                  className={`col-4 text-center align-content-center fw-bold fs-1 user-select-none
+              className={`col-4 text-center align-content-center fw-bold fs-1 user-select-none
                 ${
                   value !== mySymbol || isGameOver()
                     ? "not-ready pe-none"
@@ -153,30 +141,34 @@ function GameBoard() {
                 ${
                   calculateWinner(arr)?.winningCombo?.includes(index)
                     ? "bg-success text-light"
-                    : !arr.includes("") && calculateGameStatus() === "It's a draw"
+                    : !arr.includes("") &&
+                      calculateGameStatus() === "It's a draw"
                     ? "bg-warning"
                     : ""
                 }
                 `}
-                  onClick={() => handleCellClick(index)}
-                  key={index}
-                  style={{ aspectRatio: "1 / 1" }}
-                >
-                  {element}
-                </div>
-              ))}
+              onClick={() => handleCellClick(index)}
+              key={index}
+              style={{ aspectRatio: "1 / 1" }}
+            >
+              {element}
             </div>
-          </div>
+          ))}
+        </div>
+      </div>
 
-          {isGameOver() ? (
-            <div className="text-center mt-3">
-              <button className="btn btn-warning w-50" onClick={resetGame}>
-                Joc nou
-              </button>
-            </div>
-          ) : null}
-        </>
-      )}
+      <div
+        className={`text-center mt-3 ${
+          !isGameOver() && gameStarted ? "d-none" : ""
+        }`}
+      >
+        <button
+          className="btn btn-warning w-50"
+          onClick={!gameStarted ? startGame : resetGame}
+        >
+          Joc nou
+        </button>
+      </div>
     </>
   );
 }
