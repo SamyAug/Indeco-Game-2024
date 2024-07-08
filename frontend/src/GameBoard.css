@@ -3,12 +3,11 @@
 }
 
 .cell:empty:hover {
-    border: 2px solid rgba(5, 199, 248, 0.685);
-    cursor: pointer;
-  }
+    border: 2px solid rgb(6, 168, 237);
+    cursor : pointer;
+}
 
-.game-over .cell:empty:hover {
-    border: 2px solid gray; /* Elimină efectul de hover */
+.game-over {
+    border: 2px solid gray;
     cursor: default;
-  }
-  
+}
