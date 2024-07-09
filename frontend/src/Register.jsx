@@ -1,11 +1,9 @@
 import { useContext, useState } from "react"
-import Rooms from "./Rooms"
 import { SocketContext } from "./SocketContext"
 
-export default function Register() {
+export default function Register({ setUserData }) {
     const socket = useContext(SocketContext)
     const [message, setMessage] = useState('')
-    const [userData, setUserData] = useState(null)
     const [errorMessage, setErrorMessage] = useState('')
 
     socket.onmessage = ({ data }) => {
@@ -40,18 +38,12 @@ export default function Register() {
     return (
         <>
             {errorMessage && <h1>{errorMessage}</h1>}
-        {
-            userData
-            ? 
-                <Rooms userData={userData} />
-            : 
-                <div>
-                    <form>
-                        <input type='text' value={message} onChange={handleChange}/>
-                        <button type="submit" onClick={handleSubmit}>Submit</button>
-                    </form>
-                </div>
-        }
+            <div>
+                <form>
+                    <input type='text' value={message} onChange={handleChange}/>
+                    <button type="submit" onClick={handleSubmit}>Submit</button>
+                </form>
+            </div>
         </>
 
     )
