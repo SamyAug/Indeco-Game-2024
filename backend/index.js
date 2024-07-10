@@ -97,7 +97,7 @@ app.ws.use(
           receivers.forEach((receiver) => {
             const receiverSocket = findUserSocketById(receiver);
             if (receiverSocket)
-              receiverSocket.send(JSON.stringify({ sender: userId, message }));
+              receiverSocket.send(JSON.stringify({ senderId: userId, message }));
             else
               ctx.websocket.send(
                 JSON.stringify({

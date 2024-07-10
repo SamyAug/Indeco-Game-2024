@@ -2,16 +2,21 @@ import React, { useState } from 'react'
 import Register from './Register'
 import SocketContextProvider from './SocketContextProvider'
 import PlayerList from './PlayerList'
+import Game from './Game'
 
 const App = () => {
-  const [userData, setUserData] = useState(false)
+  const [userData, setUserData] = useState({})
+  const [games, setGames] = useState([])
 
   return (
       <SocketContextProvider>
         {
-          userData
+          Object.keys(userData).length
           ?
-          <PlayerList />
+          <>
+            <PlayerList userData={userData} setGames={setGames}/>
+            {games.map((game) => <Game />)}
+          </>
           :
           <Register setUserData={setUserData}/>
         }
