@@ -26,14 +26,16 @@ const PlayerList = () => {
 
 
   return (
-    <ul>
+    <div className="cointainer col-2 ms-2">
+    <ul className="list-group list-group-numbered">
       {userList.map((user) => (
-        <li key={user.userId}>
+        <li className="list-group-item" key={user.userId}>
             {user.username}
-            <button value={user.userId}>Play</button>
+            <button  className="btn btn-primary ms-2" value={user.userId}>Play</button>
         </li>
       ))}
     </ul>
+    </div>
   )
 }
 
