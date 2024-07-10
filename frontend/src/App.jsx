@@ -1,22 +1,27 @@
-// import { useState } from "react";
+import React, { useState } from 'react'
+import Register from './Register'
+import SocketContextProvider from './SocketContextProvider'
+import PlayerList from './PlayerList'
+import Game from './Game'
 
-import GameBoard from "./GameBoard";
+const App = () => {
+  const [userData, setUserData] = useState({})
+  const [games, setGames] = useState([])
 
-function App() {
   return (
-    <div className="container mt-5">
-      <div className="row justify-content-md-center">
-        <div className="col-5">
-          <GameBoard />
-          <GameBoard />
-        </div>
-        <div className="col-5">
-          <GameBoard />
-          <GameBoard />
-        </div>
-      </div>
-    </div>
-  );
+      <SocketContextProvider>
+        {
+          Object.keys(userData).length
+          ?
+          <>
+            <PlayerList userData={userData} setGames={setGames}/>
+            {games.map((game) => <Game />)}
+          </>
+          :
+          <Register setUserData={setUserData}/>
+        }
+      </SocketContextProvider>
+  )
 }
 
-export default App;
+export default App
