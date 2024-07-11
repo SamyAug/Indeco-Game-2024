@@ -23,8 +23,9 @@ function Game() {
         </div>
         <div className="col-5">
           <GameBoard
-            handleGameStatus={setGameStatus}
-            handleShowLoading={setShowLoading}
+            gameStatus={gameStatus}
+            setGameStatus={setGameStatus}
+            setShowLoading={setShowLoading}
           />
         </div>
         <div className="col-3">
