@@ -80,6 +80,7 @@ function GameBoard({ handleGameStatus, handleShowLoading }) {
   }
 
   function calculateGameStatus() {
+    console.log("Inside calculateGameStatus");
     let winner = calculateWinner(arr).winner;
     if (winner) {
       handleGameStatus(`Player ${winner} won`);
@@ -133,7 +134,8 @@ function GameBoard({ handleGameStatus, handleShowLoading }) {
           {arr.map((element, index) => (
             <div
               className={`col-4 text-center align-content-center fw-bold fs-1 user-select-none
-                ${
+                ${ 
+                  // daca nu e tura mea sau jocul e gata
                   value !== mySymbol || isGameOver()
                     ? "not-ready pe-none"
                     : "cell"
@@ -141,8 +143,7 @@ function GameBoard({ handleGameStatus, handleShowLoading }) {
                 ${
                   calculateWinner(arr)?.winningCombo?.includes(index)
                     ? "bg-success text-light"
-                    : !arr.includes("") &&
-                      calculateGameStatus() === "It's a draw"
+                    : ((existEmptyCellsOnTable(arr) === false) && calculateGameStatus() === "It's a draw")
                     ? "bg-warning"
                     : ""
                 }
