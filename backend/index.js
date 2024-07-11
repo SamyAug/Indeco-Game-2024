@@ -11,11 +11,14 @@ let sockets = [];
 const broadcast = (message) => {
   sockets.map(({ socket }) => socket.send(message));
 };
+
 const broadcastOnlineUsers = () => {
   broadcast(JSON.stringify({ messageType: "userRefresh", users }));
 };
+
 const findUserSocketById = (userId) =>
   sockets.find((socket) => socket.userId === userId).socket;
+
 const broadcastRemovedUser = (userId) => {
   const user = sockets.find((socket) => socket.userId === userId);
   if (user) {
@@ -24,6 +27,7 @@ const broadcastRemovedUser = (userId) => {
     broadcastOnlineUsers();
   }
 };
+
 const handleAuthenticationRequest = (parsedMessage, ctx, userId) => {
   const { registerAs } = parsedMessage;
 
@@ -116,6 +120,7 @@ app.ws.use(
   })
 );
 
+//la ce folosim aceste linii de cod?
 app.use(
   serve({
     dir: "../frontend/dist",
