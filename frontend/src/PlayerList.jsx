@@ -92,16 +92,16 @@ const PlayerList = ({ userData, setGames }) => {
         )})}
       </ul>
     </>
-    <div className="cointainer col-2 ms-2">
-    <ul className="list-group list-group-numbered">
-      {userList.map((user) => (
-        <li className="list-group-item" key={user.userId}>
-            {user.username}
-            <button  className="btn btn-primary ms-2" value={user.userId}>Play</button>
-        </li>
-      ))}
-    </ul>
-    </div>
+    // <div className="cointainer col-2 ms-2">
+    // <ul className="list-group list-group-numbered">
+    //   {userList.map((user) => (
+    //     <li className="list-group-item" key={user.userId}>
+    //         {user.username}
+    //         <button  className="btn btn-primary ms-2" value={user.userId}>Play</button>
+    //     </li>
+    //   ))}
+    // </ul>
+    // </div>
   )
 }
 

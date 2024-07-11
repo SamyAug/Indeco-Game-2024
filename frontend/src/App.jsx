@@ -15,7 +15,7 @@ const App = () => {
           ?
           <>
             <PlayerList userData={userData} setGames={setGames}/>
-            {games.map((game) => <Game />)}
+            {games.map((game) => <Game key={game.userId}/>)}
           </>
           :
           <Register setUserData={setUserData}/>
