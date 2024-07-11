@@ -97,7 +97,7 @@ app.ws.use(
                 error: "error",
                 message: "Receivers must be an array",
               })
-            );
+            ); 
           receivers.forEach((receiver) => {
             const receiverSocket = findUserSocketById(receiver);
             if (receiverSocket)
