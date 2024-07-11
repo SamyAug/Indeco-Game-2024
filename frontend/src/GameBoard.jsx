@@ -39,35 +39,64 @@ function existEmptyCellsOnTable(stateArray) {
  * Componenta GameBoard
  * @returns interfata pentru joc
  */
-// eslint-disable-next-line react/prop-types
-function GameBoard({ handleGameStatus, handleShowLoading }) {
+
+function GameBoard() {
+  // const [gameStatus, setGameStatus] = useState("Press START! to play ...");
+  // const [showLoading, setShowLoading] = useState(false);
   const [value, setValue] = useState("X");
   const [mySymbol, setMySymbol] = useState("");
+  const [winner, setWinner] = useState("");
   const [arr, setArr] = useState(Array(9).fill(""));
   const [gameStarted, setGameStarted] = useState(false);
+  // console.log(value,'value')
 
+  // function handleCellClick(index) {
+  //   if (arr[index] || calculateWinner(arr)) {
+  //     return;
+  //   } else {
+  //     let newArrayState = arr.map((element, indexElem) => {
+  //       if (index === indexElem) return value;
+  //       return element;
+  //     });
+  //     setGameStatus(calculateGameStatus(value));
+  //     console.log(calculateGameStatus(value),'me')
+  //     setArr(newArrayState);
+  //     if (
+  //       !calculateWinner(newArrayState) &&
+  //       existEmptyCellsOnTable(newArrayState)
+  //     ) {
+  //       setValue((value) => (value === "X" ? "O" : "X"));
+  //       setTimeout(() => {
+  //         showComputerMove(newArrayState, value === "X" ? "O" : "X");
+  //       }, timeBetweenMoves);
+  //     }
+  //   }
+  // }
   function handleCellClick(index) {
     if (arr[index] || calculateWinner(arr)) {
       return;
     } else {
-      let newArrayState = arr.map((element, indexElem) => {
+      console.log("Click");
+      const newArrayState = arr.map((element, indexElem) => {
         if (index === indexElem) return value;
         return element;
       });
       setArr(newArrayState);
-      if (
+      if (calculateWinner(newArrayState)) {
+        setWinner(mySymbol);
+      } else if (
         !calculateWinner(newArrayState) &&
         existEmptyCellsOnTable(newArrayState)
       ) {
-        setValue((value) => (value === "X" ? "O" : "X"));
         setTimeout(() => {
-          showComputerMove(newArrayState, value === "X" ? "O" : "X");
+          setValue((value)=>value==="X" ? "O" : "X")
+          showComputerMove(newArrayState, mySymbol === "X" ? "O" : "X");
         }, timeBetweenMoves);
       }
     }
   }
-
   function showComputerMove(newArrayState, computerSymbol) {
+    console.log("Aici");
     let randomAvailableIndex = null;
     while (randomAvailableIndex === null) {
       let randomIndex = Math.floor(Math.random() * 9);
@@ -75,76 +104,114 @@ function GameBoard({ handleGameStatus, handleShowLoading }) {
     }
     let newArray = [...newArrayState];
     newArray[randomAvailableIndex] = computerSymbol;
+    console.log(newArray);
     setArr(newArray);
-    setValue((value) => (value === "X" ? "O" : "X"));
+    setValue((value)=>value==="X" ? "O" : "X")
+
+    if (calculateWinner(newArray)) {
+      setWinner(computerSymbol);
+    }
   }
 
-  function calculateGameStatus() {
-    let winner = calculateWinner(arr).winner;
-    if (winner) {
-      handleGameStatus(`Player ${winner} won`);
-      return `Player ${winner} won`;
-    } else if (existEmptyCellsOnTable(arr) === false) {
-      handleGameStatus("It's a draw");
-      return "It's a draw";
-    } else if (gameStarted) {
-      handleGameStatus(`Next player: ${value}`);
-      handleShowLoading(value !== mySymbol);
-      return `Next player: ${value}`;
-    }
-    return "";
-  }
+  // function showComputerMove(newArrayState, computerSymbol) {
+  //   let randomAvailableIndex = null;
+  //   while (randomAvailableIndex === null) {
+  //     let randomIndex = Math.floor(Math.random() * 9);
+  //     if (newArrayState[randomIndex] === "") randomAvailableIndex = randomIndex;
+  //   }
+  //   let newArray = [...newArrayState];
+  //   newArray[randomAvailableIndex] = computerSymbol;
+  //   setGameStatus(calculateGameStatus(computerSymbol));
+  //   console.log(calculateGameStatus(computerSymbol),'computer')
+
+  //   setArr(newArray);
+  //   setValue((value) => (value === "X" ? "O" : "X"));
+  // }
+
+  // function calculateGameStatus(currentValue) {
+  //   let winner = calculateWinner(arr).winner;
+  //   if (winner) {
+  //     // setGameStatus(`Player ${winner} won`);
+  //     return `Player ${winner} won`;
+  //   } else if (existEmptyCellsOnTable(arr) === false) {
+  //     // setGameStatus("It's a draw");
+  //     return "It's a draw";
+  //   } else if (gameStarted) {
+  //     // setGameStatus(`Next player: ${value}`);
+  //     // setShowLoading(value !== mySymbol);
+  //     return `Next player: ${currentValue}`;
+  //   }
+  //   return "";
+  // }
 
   function resetGame() {
-    setValue("X");
+    // setValue("X");
+    setWinner("");
     const resetedArray = Array(9).fill("");
     setArr(resetedArray);
     const newSymbol = Math.random() > 0.5 ? "X" : "O";
     setMySymbol(newSymbol);
     if (newSymbol === "O") {
+      console.log("Computer move");
       showComputerMove(resetedArray, "X");
     }
   }
 
   function isGameOver() {
     // Actualizam si statusul cand verificam daca e sfarsit de joc
-    calculateGameStatus();
+    // setGameStatus(calculateGameStatus(value));
     const winner = calculateWinner(arr).winner;
     // daca am castigator sau tabla nu mai este goala, s-a sfarsit jocul
-    return (winner || !existEmptyCellsOnTable(arr));
+    return !!(winner || !existEmptyCellsOnTable(arr));
   }
 
   function startGame() {
     setGameStarted(true);
-    const myPlayerStartsFirst = Math.random() > 0.5 ? true : false;
+    // const myPlayerStartsFirst = Math.random() > 0.5 ? true : false;
 
-    if (myPlayerStartsFirst) {
-      setMySymbol("X");
-      return;
-    } else {
-      setMySymbol("O");
-      showComputerMove(arr, "X");
-    }
+    // if (myPlayerStartsFirst) {
+    // setGameStatus(`Next player: X`);
+    setMySymbol("X");
+    //   return;
+    // }
+    // else {
+    //   setMySymbol("O");
+    //   // setGameStatus(`Next player: X`);
+
+    //   showComputerMove(arr, "X");
+    // }
   }
   return (
     <>
+      {/* <div className="d-flex justify-content-between">
+        <h5 className="me-5">{gameStatus}</h5>
+        <div className={`d-flex ${!showLoading ? "visually-hidden" : ""}`}>
+          <span>Waiting for partner...</span>
+          <div
+            className="spinner-border text-secondary ms-3"
+            role="status"
+          ></div>
+        </div>
+      </div> */}
       <div className="container">
         <div className="row border border-5 border-primary-subtle">
           {arr.map((element, index) => (
             <div
               className={`col-4 text-center align-content-center fw-bold fs-1 user-select-none
                 ${
-                  value !== mySymbol || isGameOver()
-                    ? "not-ready pe-none"
+                  value !== mySymbol ||
+                  !!winner
+                    ? "not-ready pe-none" //cand e tura adversarului/ jocul este gata nu putem da click
                     : "cell"
                 }
                 ${
-                  calculateWinner(arr)?.winningCombo?.includes(index)
-                    ? "bg-success text-light"
-                    : !arr.includes("") &&
-                      calculateGameStatus() === "It's a draw"
-                    ? "bg-warning"
-                    : ""
+                  // calculateWinner(arr)?.winningCombo?.includes(index)
+                  //   ? "bg-success text-light"
+                  //   : !arr.includes("") &&
+                  //     calculateGameStatus() === "It's a draw"
+                  //   ? "bg-warning"
+                  //   : ""
+                  ""
                 }
                 `}
               onClick={() => handleCellClick(index)}
@@ -159,7 +226,7 @@ function GameBoard({ handleGameStatus, handleShowLoading }) {
 
       <div
         className={`text-center mt-3 ${
-          !isGameOver() && gameStarted ? "d-none" : ""
+          !winner && gameStarted ? "d-none" : "" //daca incepe jocul si nu e gata ascunde butonul
         }`}
       >
         <button
