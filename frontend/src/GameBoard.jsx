@@ -50,22 +50,22 @@ function GameBoard({ gameStatus, setGameStatus, setShowLoading }) {
     if (arr[index] || calculateWinner(arr)) {
       return;
     } else {
-      console.log("Click");
       const newArrayState = arr.map((element, indexElem) => {
         if (index === indexElem) return value;
         return element;
       });
       setArr(newArrayState);
       if (calculateWinner(newArrayState)) {
-        setGameStatus(`Player ${mySymbol} won`);
+        setGameStatus(`Player ${mySymbol} won`); //daca am castigat eu
       } else if (!existEmptyCellsOnTable(newArrayState)) {
-        setGameStatus("Draw");
+        setGameStatus("Draw"); //daca e egal dupa ce am mutat
       } else if (
         !calculateWinner(newArrayState) &&
         existEmptyCellsOnTable(newArrayState)
       ) {
+        //urmeaza mutarea oponentului
         setGameStatus(`Player ${mySymbol === "X" ? "O" : "X"} next move`);
-        setShowLoading(true)
+        setShowLoading(true);
         setValue((value) => (value === "X" ? "O" : "X"));
         setTimeout(() => {
           showComputerMove(newArrayState, mySymbol === "X" ? "O" : "X");
@@ -74,9 +74,9 @@ function GameBoard({ gameStatus, setGameStatus, setShowLoading }) {
     }
   }
   function showComputerMove(newArrayState, computerSymbol) {
-    console.log("Aici");
     let randomAvailableIndex = null;
     while (randomAvailableIndex === null) {
+      //index random pentru o pozitie libera
       let randomIndex = Math.floor(Math.random() * 9);
       if (newArrayState[randomIndex] === "") randomAvailableIndex = randomIndex;
     }
@@ -84,14 +84,18 @@ function GameBoard({ gameStatus, setGameStatus, setShowLoading }) {
     newArray[randomAvailableIndex] = computerSymbol;
     setArr(newArray);
     setValue((value) => (value === "X" ? "O" : "X"));
-    setShowLoading(false)
-    setGameStatus(`Player ${computerSymbol === "X" ? "O" : "X"} next move`);
+    setShowLoading(false);
 
     if (calculateWinner(newArray)) {
+      //daca a castigat computerul
       setGameStatus(`Player ${computerSymbol} won`);
+      return;
     } else if (!existEmptyCellsOnTable(newArray)) {
+      //daca e egal dupa mutare
       setGameStatus("Draw");
+      return;
     }
+    setGameStatus(`Player ${computerSymbol === "X" ? "O" : "X"} next move`); // setam statusul pentru urmatorul player
   }
 
   function resetGame() {
@@ -102,7 +106,6 @@ function GameBoard({ gameStatus, setGameStatus, setShowLoading }) {
     const newSymbol = Math.random() > 0.5 ? "X" : "O";
     setMySymbol(newSymbol);
     if (newSymbol === "O") {
-      console.log("Computer move");
       showComputerMove(resetedArray, "X");
     }
   }
