@@ -40,7 +40,7 @@ function existEmptyCellsOnTable(stateArray) {
  * @returns interfata pentru joc
  */
 
-function GameBoard({ gameStatus, setGameStatus, setShowLoading }) {
+function SingleplayerGameBoard({ gameStatus, setGameStatus, setShowLoading }) {
   const [value, setValue] = useState("X");
   const [mySymbol, setMySymbol] = useState("");
   const [arr, setArr] = useState(Array(9).fill(""));
@@ -177,4 +177,4 @@ function GameBoard({ gameStatus, setGameStatus, setShowLoading }) {
   );
 }
 
-export default GameBoard;
+export default SingleplayerGameBoard;

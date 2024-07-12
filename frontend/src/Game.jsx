@@ -1,17 +1,24 @@
 import { useState } from "react";
-import GameBoard from "./GameBoard";
+import SingleplayerGameBoard from "./SingleplayerGameBoard";
 import PlayerCard from "./PlayerCard";
 import GameStatus from "./GameStatus";
+import MultiplayerGameBoard from "./MultiplayerGameBoard";
 
-function Game() {
-  const [gameStatus, setGameStatus] = useState("Press START! to play ...");
-  const [showLoading, setShowLoading] = useState(false);
+function Game({ gameData }) {
+  const [gameStatus, setGameStatus] = useState(
+    gameData.symbol === "X" ? "You move" : ""
+  );
+  const [showLoading, setShowLoading] = useState(gameData.symbol !== "X");
 
   return (
     <div className="container mt-5">
       <div className="row justify-content-md-center">
         <div className="col-5">
-          <GameStatus statusMessage={gameStatus} showLoading={showLoading} />
+          <GameStatus
+            opponentData={gameData}
+            statusMessage={gameStatus}
+            showLoading={showLoading}
+          />
         </div>
       </div>
       <div className="row justify-content-md-center">
@@ -22,7 +29,13 @@ function Game() {
           />
         </div>
         <div className="col-5">
-          <GameBoard
+          {/* <SingleplayerGameBoard
+            gameStatus={gameStatus}
+            setGameStatus={setGameStatus}
+            setShowLoading={setShowLoading}
+          /> */}
+          <MultiplayerGameBoard
+            gameData={gameData}
             gameStatus={gameStatus}
             setGameStatus={setGameStatus}
             setShowLoading={setShowLoading}

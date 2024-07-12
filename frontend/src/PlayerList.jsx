@@ -1,11 +1,13 @@
 import { useContext, useEffect, useState } from "react";
 import { SocketContext } from "./SocketContext";
+import { UserContext } from "./App";
 
-const PlayerList = ({ userData, setGames }) => {
+const PlayerList = ({ setGames }) => {
+  const { userData } = useContext(UserContext);
   const socket = useContext(SocketContext);
   const [userList, setUserList] = useState([]);
   const [userRelations, setUserRelations] = useState([]);
-// console.log(userRelations)
+  // console.log(userRelations)
   socket.onmessage = ({ data }) => {
     console.log("Data from PlayerList:", data);
     try {
@@ -33,7 +35,10 @@ const PlayerList = ({ userData, setGames }) => {
               return relation;
             })
           );
-          setGames((prevGames) => [...prevGames, opponentData]);
+          setGames((prevGames) => [
+            ...prevGames,
+            { ...opponentData, symbol: message.symbol === "X" ? "O" : "X" },
+          ]);
         }
 
         if (message.userRequestType === "declineRequest") {
@@ -60,7 +65,7 @@ const PlayerList = ({ userData, setGames }) => {
       return <button disabled>Waiting...</button>;
     }
 
-    if (relationStatus === 'playing'){
+    if (relationStatus === "playing") {
       return <button disabled>Playing...</button>;
     }
 
@@ -89,7 +94,11 @@ const PlayerList = ({ userData, setGames }) => {
 
   const handleRequestAccept = (userId) => {
     const opponentData = userList.find((user) => user.userId === userId);
-    setGames((prevGames) => [...prevGames, opponentData]);
+    const mySymbol = Math.random() > 0.5 ? "X" : "O";
+    setGames((prevGames) => [
+      ...prevGames,
+      { ...opponentData, symbol: mySymbol },
+    ]);
     setUserRelations(
       userRelations.map((relation) => {
         if (relation.userId === userId)
@@ -100,7 +109,7 @@ const PlayerList = ({ userData, setGames }) => {
     socket.send(
       JSON.stringify({
         receivers: [userId],
-        message: { userRequestType: "acceptRequest" },
+        message: { userRequestType: "acceptRequest", symbol: mySymbol },
       })
     );
   };
