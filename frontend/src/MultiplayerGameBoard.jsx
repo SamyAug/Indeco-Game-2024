@@ -82,11 +82,15 @@ function MultiplayerGameBoard({
           prevGames.filter((game) => gameData.userId !== game.userId)
         );
       }
-  }, [])
+  }, [arr])
 
   useEffect(() => {
     setMessageHandlers(prevHandlers => new Set([...prevHandlers, gameBoardHandler]))
-  }, [])
+
+    return () => {
+      setMessageHandlers(prevHandlers => new Set([...prevHandlers].filter(handler => handler !== gameBoardHandler)))
+    }
+  }, [gameBoardHandler])
 
   function handleCellClick(index) {
     if (arr[index] || calculateWinner(arr)) {

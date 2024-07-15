@@ -26,8 +26,7 @@ const PlayerList = ({ setGames }) => {
           const opponentData = userList.find(
             (user) => user.userId === senderId
           );
-          console.log("Accepter ID:", senderId)
-          console.log("User list on accept:", userList)
+
           setUserRelations(
             userRelations.map((relation) => {
               if (relation.userId === senderId)
@@ -47,11 +46,15 @@ const PlayerList = ({ setGames }) => {
         console.log("In player list")
       }
     }
-})
+}, [userList, userRelations])
 
 useEffect(() => {
   setMessageHandlers(prevHandlers => new Set([...prevHandlers, playerListHandler]))
-}, [])
+  
+  return () => {
+    setMessageHandlers(prevHandlers => new Set([...prevHandlers].filter(handler => handler !== playerListHandler)))
+  }
+}, [playerListHandler])
 
   const calculateUserRelationStatus = (relationStatus, userId) => {
     if (relationStatus === "invited") {
