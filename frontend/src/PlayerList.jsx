@@ -1,17 +1,16 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { SocketContext } from "./SocketContext";
 import { UserContext } from "./App";
-import { useSocket } from "./useSocket";
 
 const PlayerList = ({ setGames }) => {
   const { userData } = useContext(UserContext);
+  const { socket, setMessageHandlers } = useContext(SocketContext)
   const [userList, setUserList] = useState([]);
   const [userRelations, setUserRelations] = useState([]);
-  // console.log(userRelations)
-  const socket = useSocket(({ messageType, users, senderId, message })=>{
-    console.log("player list useSocket")
-    try {
-      
+
+
+  console.log("rendered playerlist")
+  const playerListHandler = useCallback(({ messageType, users, senderId, message })=>{
       //{ messageType: "userRefresh", users }
       if (messageType === "userRefresh") {
         setUserList(users);
@@ -27,6 +26,8 @@ const PlayerList = ({ setGames }) => {
           const opponentData = userList.find(
             (user) => user.userId === senderId
           );
+          console.log("Accepter ID:", senderId)
+          console.log("User list on accept:", userList)
           setUserRelations(
             userRelations.map((relation) => {
               if (relation.userId === senderId)
@@ -46,13 +47,12 @@ const PlayerList = ({ setGames }) => {
         console.log("In player list")
       }
     }
-  } catch (err) {
-    console.log(err);
-  }
 })
-// console.log(socket.onmessage.arguments,'argumente')
-// console.log(socket.onmessage.caller,'caller')
-console.log(socket)
+
+useEffect(() => {
+  setMessageHandlers(prevHandlers => new Set([...prevHandlers, playerListHandler]))
+}, [])
+
   const calculateUserRelationStatus = (relationStatus, userId) => {
     if (relationStatus === "invited") {
       return (

@@ -1,9 +1,8 @@
-import React, { createContext, useState } from "react";
+import { createContext, useState } from "react";
 import Register from "./Register";
 import SocketContextProvider from "./SocketContextProvider";
 import PlayerList from "./PlayerList";
 import Game from "./Game";
-import Modal from "./Modal";
 
 export const UserContext = createContext();
 

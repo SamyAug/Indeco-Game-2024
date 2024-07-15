@@ -1,8 +1,8 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect, useCallback } from "react";
 import "./GameBoard.css";
 import { SocketContext } from "./SocketContext";
 import Modal from "./Modal";
-import { useSocket } from "./useSocket";
+
 const winningCombos = [
   [0, 1, 2],
   [3, 4, 5],
@@ -49,13 +49,13 @@ function MultiplayerGameBoard({
   setGames,
 }) {
   const [value, setValue] = useState("X");
-  const [mySymbol, setMySymbol] = useState("");
+  const [mySymbol, setMySymbol] = useState(gameData.symbol);
   const [arr, setArr] = useState(Array(9).fill(""));
   const [isGameOver, setIsGameOver] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const { socket, setMessageHandlers } = useContext(SocketContext)
 
-  const socket = useSocket(({ senderId, message }) => {
-    try {
+  const gameBoardHandler = useCallback(({ senderId, message }) => {
       if (senderId === gameData.userId && message?.gameArray) {
         setArr([...message.gameArray]);
         const gameOver = verifyGameOver(message.gameArray);
@@ -82,18 +82,11 @@ function MultiplayerGameBoard({
           prevGames.filter((game) => gameData.userId !== game.userId)
         );
       }
-    } catch (error) {
-      console.log(error);
-    }
-  });
+  }, [])
 
-  if (gameData && gameData.symbol && !mySymbol) {
-    console.log(gameData.symbol);
-    setMySymbol(gameData.symbol);
-
-    // setGameStatus(calculateGameStatus(arr, value));
-    // setShowLoading(gameData.symbol !== value);
-  }
+  useEffect(() => {
+    setMessageHandlers(prevHandlers => new Set([...prevHandlers, gameBoardHandler]))
+  }, [])
 
   function handleCellClick(index) {
     if (arr[index] || calculateWinner(arr)) {

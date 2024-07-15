@@ -1,32 +1,29 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import { SocketContext } from "./SocketContext";
 import { UserContext } from "./App";
 
 export default function Register() {
   const { setUserData } = useContext(UserContext);
-  const socket = useContext(SocketContext);
+  const { socket, setMessageHandlers } = useContext(SocketContext);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  socket.onmessage = ({ data }) => {
-    console.log("Socket message from Register: ", data);
-    try {
-      const parsedMessage = JSON.parse(data);
-
-      if (parsedMessage.messageType === "authentication") {
+  const registerHandler = useCallback(({ messageType, userId, username, message }) => {
+      if (messageType === "authentication") {
         setUserData({
-          userId: parsedMessage.userId,
-          username: parsedMessage.username,
+          userId: userId,
+          username: username,
         });
         setErrorMessage("");
       }
 
-      if (parsedMessage.messageType === "registerError")
-        setErrorMessage(parsedMessage.message);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+      if (messageType === "registerError")
+        setErrorMessage(message);
+  }, [])
+
+  useEffect(() => {
+    setMessageHandlers(prevHandlers => new Set([...prevHandlers, registerHandler]))
+  }, [])
 
   const handleChange = (e) => {
     const { value } = e.target;
