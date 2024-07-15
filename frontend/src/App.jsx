@@ -3,6 +3,7 @@ import Register from "./Register";
 import SocketContextProvider from "./SocketContextProvider";
 import PlayerList from "./PlayerList";
 import Game from "./Game";
+import Modal from "./Modal";
 
 export const UserContext = createContext();
 
@@ -17,7 +18,7 @@ const App = () => {
           <>
             <PlayerList setGames={setGames} />
             {games.map((game) => (
-              <Game key={game.userId} gameData = {game}  />
+              <Game key={game.userId} gameData = {game} setGames={setGames} />
             ))}
           </>
         ) : (

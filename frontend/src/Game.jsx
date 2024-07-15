@@ -4,7 +4,7 @@ import PlayerCard from "./PlayerCard";
 import GameStatus from "./GameStatus";
 import MultiplayerGameBoard from "./MultiplayerGameBoard";
 
-function Game({ gameData }) {
+function Game({ gameData, setGames }) {
   const [gameStatus, setGameStatus] = useState(
     gameData.symbol === "X" ? "You move" : ""
   );
@@ -35,6 +35,7 @@ function Game({ gameData }) {
             setShowLoading={setShowLoading}
           /> */}
           <MultiplayerGameBoard
+            setGames={setGames}
             gameData={gameData}
             gameStatus={gameStatus}
             setGameStatus={setGameStatus}
