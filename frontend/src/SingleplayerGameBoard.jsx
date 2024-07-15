@@ -39,8 +39,8 @@ function existEmptyCellsOnTable(stateArray) {
  * Componenta GameBoard
  * @returns interfata pentru joc
  */
-// eslint-disable-next-line react/prop-types
-function GameBoard({ handleGameStatus, handleShowLoading }) {
+
+function SingleplayerGameBoard({ gameStatus, setGameStatus, setShowLoading }) {
   const [value, setValue] = useState("X");
   const [mySymbol, setMySymbol] = useState("");
   const [arr, setArr] = useState(Array(9).fill(""));
@@ -50,26 +50,33 @@ function GameBoard({ handleGameStatus, handleShowLoading }) {
     if (arr[index] || calculateWinner(arr)) {
       return;
     } else {
-      let newArrayState = arr.map((element, indexElem) => {
+      const newArrayState = arr.map((element, indexElem) => {
         if (index === indexElem) return value;
         return element;
       });
       setArr(newArrayState);
-      if (
+      if (calculateWinner(newArrayState)) {
+        setGameStatus(`Player ${mySymbol} won`); //daca am castigat eu
+      } else if (!existEmptyCellsOnTable(newArrayState)) {
+        setGameStatus("Draw"); //daca e egal dupa ce am mutat
+      } else if (
         !calculateWinner(newArrayState) &&
         existEmptyCellsOnTable(newArrayState)
       ) {
+        //urmeaza mutarea oponentului
+        setGameStatus(`Player ${mySymbol === "X" ? "O" : "X"} next move`);
+        setShowLoading(true);
         setValue((value) => (value === "X" ? "O" : "X"));
         setTimeout(() => {
-          showComputerMove(newArrayState, value === "X" ? "O" : "X");
+          showComputerMove(newArrayState, mySymbol === "X" ? "O" : "X");
         }, timeBetweenMoves);
       }
     }
   }
-
   function showComputerMove(newArrayState, computerSymbol) {
     let randomAvailableIndex = null;
     while (randomAvailableIndex === null) {
+      //index random pentru o pozitie libera
       let randomIndex = Math.floor(Math.random() * 9);
       if (newArrayState[randomIndex] === "") randomAvailableIndex = randomIndex;
     }
@@ -77,26 +84,23 @@ function GameBoard({ handleGameStatus, handleShowLoading }) {
     newArray[randomAvailableIndex] = computerSymbol;
     setArr(newArray);
     setValue((value) => (value === "X" ? "O" : "X"));
-  }
+    setShowLoading(false);
 
-  function calculateGameStatus() {
-    let winner = calculateWinner(arr).winner;
-    if (winner) {
-      handleGameStatus(`Player ${winner} won`);
-      return `Player ${winner} won`;
-    } else if (existEmptyCellsOnTable(arr) === false) {
-      handleGameStatus("It's a draw");
-      return "It's a draw";
-    } else if (gameStarted) {
-      handleGameStatus(`Next player: ${value}`);
-      handleShowLoading(value !== mySymbol);
-      return `Next player: ${value}`;
+    if (calculateWinner(newArray)) {
+      //daca a castigat computerul
+      setGameStatus(`Player ${computerSymbol} won`);
+      return;
+    } else if (!existEmptyCellsOnTable(newArray)) {
+      //daca e egal dupa mutare
+      setGameStatus("Draw");
+      return;
     }
-    return "";
+    setGameStatus(`Player ${computerSymbol === "X" ? "O" : "X"} next move`); // setam statusul pentru urmatorul player
   }
 
   function resetGame() {
     setValue("X");
+    setGameStatus("Player X moves next");
     const resetedArray = Array(9).fill("");
     setArr(resetedArray);
     const newSymbol = Math.random() > 0.5 ? "X" : "O";
@@ -106,25 +110,17 @@ function GameBoard({ handleGameStatus, handleShowLoading }) {
     }
   }
 
-  function isGameOver() {
-    // Actualizam si statusul cand verificam daca e sfarsit de joc
-    calculateGameStatus();
-    const winner = calculateWinner(arr).winner;
-    // daca am castigator sau tabla nu mai este goala, s-a sfarsit jocul
-    return (winner || !existEmptyCellsOnTable(arr));
-  }
-
   function startGame() {
     setGameStarted(true);
     const myPlayerStartsFirst = Math.random() > 0.5 ? true : false;
 
     if (myPlayerStartsFirst) {
       setMySymbol("X");
-      return;
     } else {
       setMySymbol("O");
       showComputerMove(arr, "X");
     }
+    setGameStatus(`Player X moves next`);
   }
   return (
     <>
@@ -134,15 +130,17 @@ function GameBoard({ handleGameStatus, handleShowLoading }) {
             <div
               className={`col-4 text-center align-content-center fw-bold fs-1 user-select-none
                 ${
-                  value !== mySymbol || isGameOver()
-                    ? "not-ready pe-none"
+                  value !== mySymbol ||
+                  gameStatus === "Player X won" ||
+                  gameStatus === "Player O won" ||
+                  gameStatus === "Draw"
+                    ? "not-ready pe-none" //cand e tura adversarului/ jocul este gata nu putem da click
                     : "cell"
                 }
                 ${
                   calculateWinner(arr)?.winningCombo?.includes(index)
                     ? "bg-success text-light"
-                    : !arr.includes("") &&
-                      calculateGameStatus() === "It's a draw"
+                    : gameStatus === "Draw"
                     ? "bg-warning"
                     : ""
                 }
@@ -159,7 +157,13 @@ function GameBoard({ handleGameStatus, handleShowLoading }) {
 
       <div
         className={`text-center mt-3 ${
-          !isGameOver() && gameStarted ? "d-none" : ""
+          gameStatus !== "Press START! to play ..." &&
+          gameStatus !== "Player X won" &&
+          gameStatus !== "Player O won" &&
+          gameStatus !== "Draw" &&
+          gameStarted
+            ? "d-none"
+            : "" //daca incepe jocul si nu e gata ascunde butonul
         }`}
       >
         <button
@@ -173,4 +177,4 @@ function GameBoard({ handleGameStatus, handleShowLoading }) {
   );
 }
 
-export default GameBoard;
+export default SingleplayerGameBoard;

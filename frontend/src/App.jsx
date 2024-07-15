@@ -1,27 +1,31 @@
-import React, { useState } from 'react'
-import Register from './Register'
-import SocketContextProvider from './SocketContextProvider'
-import PlayerList from './PlayerList'
-import Game from './Game'
+import React, { createContext, useState } from "react";
+import Register from "./Register";
+import SocketContextProvider from "./SocketContextProvider";
+import PlayerList from "./PlayerList";
+import Game from "./Game";
+
+export const UserContext = createContext();
 
 const App = () => {
-  const [userData, setUserData] = useState({})
-  const [games, setGames] = useState([])
+  const [userData, setUserData] = useState({});
+  const [games, setGames] = useState([]);
 
   return (
-      <SocketContextProvider>
-        {
-          Object.keys(userData).length
-          ?
+    <SocketContextProvider>
+      <UserContext.Provider value={{ userData, setUserData }}>
+        {Object.keys(userData).length ? (
           <>
-            <PlayerList userData={userData} setGames={setGames}/>
-            {games.map((game) => <Game />)}
+            <PlayerList setGames={setGames} />
+            {games.map((game) => (
+              <Game key={game.userId} gameData = {game}  />
+            ))}
           </>
-          :
-          <Register setUserData={setUserData}/>
-        }
-      </SocketContextProvider>
-  )
-}
+        ) : (
+          <Register/>
+        )}
+      </UserContext.Provider>
+    </SocketContextProvider>
+  );
+};
 
-export default App
+export default App;
