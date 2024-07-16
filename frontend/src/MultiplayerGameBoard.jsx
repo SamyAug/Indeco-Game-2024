@@ -79,6 +79,18 @@ function MultiplayerGameBoard({
         message.userRequestType === "reset"
       ) {
         setIsOpen(true);
+      } else if (
+        senderId == gameData.userId &&
+        message.userRequestType === "acceptReset"
+      ) {
+        setValue("X");
+        const newSymbol = message.symbol === "X" ? "O" : "X";
+        setMySymbol(newSymbol);
+        const newArray = Array(9).fill("");
+        setArr(newArray);
+        setGameStatus(calculateGameStatus(newArray, "X", newSymbol));
+        setShowLoading(newSymbol !== "X");
+        setIsGameOver(false);
       }
     } catch (error) {
       console.log(error);
@@ -118,10 +130,11 @@ function MultiplayerGameBoard({
       newValue = value;
     }
 
+    const gameOver = verifyGameOver(newArrayState);
     setArr(newArrayState);
     setGameStatus(calculateGameStatus(newArrayState, newValue));
-    setShowLoading(newValue !== mySymbol && !isGameOver);
-    setIsGameOver(verifyGameOver(newArrayState));
+    setShowLoading(newValue !== mySymbol && !gameOver);
+    setIsGameOver(gameOver);
     socket.send(
       JSON.stringify({
         receivers: [gameData.userId],
@@ -130,29 +143,48 @@ function MultiplayerGameBoard({
     );
   }
 
-  function calculateGameStatus(newArray, newValue) {
+  function calculateGameStatus(newArray, newValue, myNewSymbol) {
     let winner = calculateWinner(newArray).winner;
     if (winner) {
       return `Player ${winner} won`;
     } else if (existEmptyCellsOnTable(newArray) === false) {
       return "It's a draw";
     }
-    if (newValue === mySymbol) {
+    if (newValue === (myNewSymbol || mySymbol)) {
       return `You move`;
     } else {
       return ``;
     }
   }
 
-  function resetGame() {
+  //   function resetGame() {
+  //     setValue("X");
+  //     setArr(resetedArray);
+  //     setMySymbol(newSymbol);
+  //     setIsGameOver(false);
+  //     setGameStatus(calculateGameStatus(resetedArray, "X"));
+  //     setShowLoading(newSymbol !== "X");
+  //   }
+
+  function handleAccept() {
+    setIsOpen(false);
+    const newSymbol = Math.random() > 0.5 ? "X" : "O";
     setValue("X");
+    setMySymbol(newSymbol);
     const resetedArray = Array(9).fill("");
     setArr(resetedArray);
-    setMySymbol(newSymbol);
     setIsGameOver(false);
-    setGameStatus(calculateGameStatus(resetedArray, "X"));
+    setGameStatus(calculateGameStatus(resetedArray, "X", newSymbol));
     setShowLoading(newSymbol !== "X");
+
+    socket.send(
+      JSON.stringify({
+        receivers: [gameData.userId],
+        message: { userRequestType: "acceptReset", symbol: newSymbol },
+      })
+    );
   }
+
   function handleDecline() {
     setIsOpen(false);
     setGames((prevGames) =>
@@ -221,7 +253,7 @@ function MultiplayerGameBoard({
       </div>
 
       {isOpen && (
-        <Modal title="Rematch" onClose={handleDecline} onAccept={resetGame}>
+        <Modal title="Rematch" onClose={handleDecline} onAccept={handleAccept}>
           <div>{gameData.username} wants to play again</div>
         </Modal>
       )}

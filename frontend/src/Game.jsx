@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import SingleplayerGameBoard from "./SingleplayerGameBoard";
 import PlayerCard from "./PlayerCard";
 import GameStatus from "./GameStatus";
 import MultiplayerGameBoard from "./MultiplayerGameBoard";
+import { UserContext } from "./App";
 
 function Game({ gameData, setGames, setUserRelations }) {
+  const {userData} = useContext(UserContext);
   const [gameStatus, setGameStatus] = useState(
     gameData.symbol === "X" ? "You move" : ""
   );
@@ -24,7 +26,7 @@ function Game({ gameData, setGames, setUserRelations }) {
       <div className="row justify-content-md-center">
         <div className="col-3">
           <PlayerCard
-            playerName="Jucatorul 1"
+            playerName={userData.username}
             imageUrl="https://cdnb.artstation.com/p/assets/images/images/020/466/229/large/andre-alvarenga-dd.jpg?1567876618"
           />
         </div>
@@ -45,7 +47,7 @@ function Game({ gameData, setGames, setUserRelations }) {
         </div>
         <div className="col-3">
           <PlayerCard
-            playerName="Jucatorul 2"
+            playerName={gameData.username}
             imageUrl="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExcG51c28xMm15bDJueXkwYTd0Z2F4MTJoYTB5cnA1Z3U3dzBnOGFmdCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/JsE9qckiYyVClQ5bY2/giphy.gif"
           />
         </div>

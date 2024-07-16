@@ -8,21 +8,17 @@ export default function Register() {
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  socket = useSocket(({ data }) => {
-    console.log("Socket message from Register: ", data);
+  const socket = useSocket(({ messageType, message, userId, username }) => {
     try {
-      const parsedMessage = JSON.parse(data);
-
-      if (parsedMessage.messageType === "authentication") {
+      if (messageType === "authentication") {
         setUserData({
-          userId: parsedMessage.userId,
-          username: parsedMessage.username,
+          userId: userId,
+          username: username,
         });
         setErrorMessage("");
       }
 
-      if (parsedMessage.messageType === "registerError")
-        setErrorMessage(parsedMessage.message);
+      if (messageType === "registerError") setErrorMessage(message);
     } catch (err) {
       console.log(err);
     }
