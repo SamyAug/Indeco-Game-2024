@@ -4,6 +4,7 @@ import SocketContextProvider from "./SocketContextProvider";
 import PlayerList from "./PlayerList";
 import Game from "./Game";
 import Modal from "./Modal";
+import SelectGameMode from "./SelectGameMode";
 import SingleplayerGameBoard from "./SingleplayerGameBoard";
 
 export const UserContext = createContext();
@@ -12,11 +13,17 @@ const App = () => {
   const [userData, setUserData] = useState({});
   const [games, setGames] = useState([]);
   const [userRelations, setUserRelations] = useState([]);
-  const [gamemode, setGamemode] = useState("multiplayer");
+  const [gameMode, setGameMode] = useState(null);
 
-  return gamemode ? (
-    gamemode === "singleplayer" ? (
-      <>{/* <Game /> */}</>
+  return gameMode ? (
+    gameMode === "singleplayer" ? (
+      <Game
+        gameMode={gameMode}
+        gameData={{
+          username: "Computer",
+          // symbol: Math.random() > 0.5 ? "X" : "O",
+        }}
+      />
     ) : (
       <SocketContextProvider>
         <UserContext.Provider value={{ userData, setUserData }}>
@@ -43,9 +50,7 @@ const App = () => {
       </SocketContextProvider>
     )
   ) : (
-    <>
-      {/* <SelectGameMode /> */}
-    </>
+    <SelectGameMode setGameMode={setGameMode} />
   );
 };
 

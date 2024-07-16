@@ -5,12 +5,14 @@ import GameStatus from "./GameStatus";
 import MultiplayerGameBoard from "./MultiplayerGameBoard";
 import { UserContext } from "./App";
 
-function Game({ gameData, setGames, setUserRelations }) {
-  const {userData} = useContext(UserContext);
+function Game({ gameMode, gameData, setGames, setUserRelations }) {
+  // const { userData } = useContext(UserContext);
   const [gameStatus, setGameStatus] = useState(
-    gameData.symbol === "X" ? "You move" : ""
+    gameData?.symbol === "X" ? "You move" : ""
   );
-  const [showLoading, setShowLoading] = useState(gameData.symbol !== "X");
+  const [showLoading, setShowLoading] = useState(
+    gameData?.symbol && gameData?.symbol !== "X"
+  );
 
   return (
     <div className="container mt-5">
@@ -26,24 +28,27 @@ function Game({ gameData, setGames, setUserRelations }) {
       <div className="row justify-content-md-center">
         <div className="col-3">
           <PlayerCard
-            playerName={userData.username}
+            playerName={gameMode === "singleplayer" ? "Player1" : ""}
             imageUrl="https://cdnb.artstation.com/p/assets/images/images/020/466/229/large/andre-alvarenga-dd.jpg?1567876618"
           />
         </div>
         <div className="col-5">
-          {/* <SingleplayerGameBoard
-            gameStatus={gameStatus}
-            setGameStatus={setGameStatus}
-            setShowLoading={setShowLoading}
-          /> */}
-          <MultiplayerGameBoard
-            setGames={setGames}
-            gameData={gameData}
-            gameStatus={gameStatus}
-            setGameStatus={setGameStatus}
-            setShowLoading={setShowLoading}
-            setUserRelations={setUserRelations}
-          />
+          {gameMode === "singleplayer" ? (
+            <SingleplayerGameBoard
+              gameStatus={gameStatus}
+              setGameStatus={setGameStatus}
+              setShowLoading={setShowLoading}
+            />
+          ) : (
+            <MultiplayerGameBoard
+              setGames={setGames}
+              gameData={gameData}
+              gameStatus={gameStatus}
+              setGameStatus={setGameStatus}
+              setShowLoading={setShowLoading}
+              setUserRelations={setUserRelations}
+            />
+          )}
         </div>
         <div className="col-3">
           <PlayerCard
