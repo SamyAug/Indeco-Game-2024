@@ -4,7 +4,7 @@ import PlayerCard from "./PlayerCard";
 import GameStatus from "./GameStatus";
 import MultiplayerGameBoard from "./MultiplayerGameBoard";
 
-function Game({ gameData, setGames }) {
+function Game({ gameData, setGames, setUserRelations }) {
   const [gameStatus, setGameStatus] = useState(
     gameData.symbol === "X" ? "You move" : ""
   );
@@ -40,6 +40,7 @@ function Game({ gameData, setGames }) {
             gameStatus={gameStatus}
             setGameStatus={setGameStatus}
             setShowLoading={setShowLoading}
+            setUserRelations={setUserRelations}
           />
         </div>
         <div className="col-3">

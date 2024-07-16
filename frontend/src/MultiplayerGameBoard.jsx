@@ -3,6 +3,7 @@ import "./GameBoard.css";
 import { SocketContext } from "./SocketContext";
 import Modal from "./Modal";
 import { useSocket } from "./useSocket";
+import { UserContext } from "./App";
 const winningCombos = [
   [0, 1, 2],
   [3, 4, 5],
@@ -47,6 +48,7 @@ function MultiplayerGameBoard({
   gameStatus,
   gameData,
   setGames,
+  setUserRelations,
 }) {
   const [value, setValue] = useState("X");
   const [mySymbol, setMySymbol] = useState("");
@@ -54,7 +56,10 @@ function MultiplayerGameBoard({
   const [isGameOver, setIsGameOver] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
+  const { userData } = useContext(UserContext);
+
   const socket = useSocket(({ senderId, message }) => {
+    console.log("gameboard use socket");
     try {
       if (senderId === gameData.userId && message?.gameArray) {
         setArr([...message.gameArray]);
@@ -74,13 +79,6 @@ function MultiplayerGameBoard({
         message.userRequestType === "reset"
       ) {
         setIsOpen(true);
-      } else if (
-        senderId === gameData.userId &&
-        message.userRequestType === "declineRequest"
-      ) {
-        setGames((prevGames) =>
-          prevGames.filter((game) => gameData.userId !== game.userId)
-        );
       }
     } catch (error) {
       console.log(error);
@@ -158,7 +156,10 @@ function MultiplayerGameBoard({
   function handleDecline() {
     setIsOpen(false);
     setGames((prevGames) =>
-      prevGames.filter((game) => gameData.userId !== game.userId)
+      prevGames.filter((game) => game.userId !== gameData.userId)
+    );
+    setUserRelations((prevRelations) =>
+      prevRelations.filter((relation) => relation.userId !== gameData.userId)
     );
     socket.send(
       JSON.stringify({

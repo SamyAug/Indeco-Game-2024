@@ -3,15 +3,11 @@ import { SocketContext } from "./SocketContext";
 import { UserContext } from "./App";
 import { useSocket } from "./useSocket";
 
-const PlayerList = ({ setGames }) => {
+const PlayerList = ({ setGames, userRelations, setUserRelations }) => {
   const { userData } = useContext(UserContext);
   const [userList, setUserList] = useState([]);
-  const [userRelations, setUserRelations] = useState([]);
-  // console.log(userRelations)
-  const socket = useSocket(({ messageType, users, senderId, message })=>{
-    console.log("player list useSocket")
+  const socket = useSocket(({ messageType, users, senderId, message }) => {
     try {
-      
       //{ messageType: "userRefresh", users }
       if (messageType === "userRefresh") {
         setUserList(users);
@@ -42,17 +38,16 @@ const PlayerList = ({ setGames }) => {
         if (message.userRequestType === "declineRequest") {
           setUserRelations((prevRelations) =>
             prevRelations.filter((relation) => relation.userId !== senderId)
-        );
-        console.log("In player list")
+          );
+          setGames((prevGames) =>
+            prevGames.filter((game) => senderId !== game.userId)
+          );
+        }
       }
+    } catch (err) {
+      console.log(err);
     }
-  } catch (err) {
-    console.log(err);
-  }
-})
-// console.log(socket.onmessage.arguments,'argumente')
-// console.log(socket.onmessage.caller,'caller')
-console.log(socket)
+  });
   const calculateUserRelationStatus = (relationStatus, userId) => {
     if (relationStatus === "invited") {
       return (
@@ -129,9 +124,8 @@ console.log(socket)
   };
 
   useEffect(() => {
-
     // if (!userList.length)
-      socket.send(JSON.stringify({ messageType: "userRefresh" }));
+    socket.send(JSON.stringify({ messageType: "userRefresh" }));
   }, [socket]);
 
   return (
