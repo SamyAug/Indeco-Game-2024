@@ -12,11 +12,11 @@ const App = () => {
   const [userData, setUserData] = useState({});
   const [games, setGames] = useState([]);
   const [userRelations, setUserRelations] = useState([]);
-  const [gamemode, setGamemode] = useState('singleplayer');
+  const [gamemode, setGamemode] = useState("multiplayer");
 
   return gamemode ? (
     gamemode === "singleplayer" ? (
-      <Game />
+      <>{/* <Game /> */}</>
     ) : (
       <SocketContextProvider>
         <UserContext.Provider value={{ userData, setUserData }}>
@@ -43,7 +43,9 @@ const App = () => {
       </SocketContextProvider>
     )
   ) : (
-    <SelectGameMode />
+    <>
+      {/* <SelectGameMode /> */}
+    </>
   );
 };
 
