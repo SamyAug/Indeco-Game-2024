@@ -1,14 +1,14 @@
 import { useContext, useState } from "react";
 import { SocketContext } from "./SocketContext";
 import { UserContext } from "./App";
+import { useSocket } from "./useSocket";
 
 export default function Register() {
   const { setUserData } = useContext(UserContext);
-  const socket = useContext(SocketContext);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  socket.onmessage = ({ data }) => {
+  socket = useSocket(({ data }) => {
     console.log("Socket message from Register: ", data);
     try {
       const parsedMessage = JSON.parse(data);
@@ -26,7 +26,7 @@ export default function Register() {
     } catch (err) {
       console.log(err);
     }
-  };
+  });
 
   const handleChange = (e) => {
     const { value } = e.target;

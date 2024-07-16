@@ -6,18 +6,16 @@ export function useSocket(callback) {
 
   useEffect(() => {
     if (!socket) return;
-    
-    socket.onmessage = (event) => {
+
+    const handleMessage = (event) => {
       const message = JSON.parse(event.data);
-      console.log("on message")
       callback(message);
     };
-
+    socket.addEventListener("message", handleMessage);
     // Clean up on unmount
     return () => {
-      socket.onmessage = null;
+      socket.removeEventListener("message", handleMessage);
     };
   }, [socket, callback]);
-
   return socket;
 }
