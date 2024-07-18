@@ -1,4 +1,4 @@
-
+/* eslint-disable react/prop-types */
 import { useState } from "react";
 import "./GameBoard.css";
 const timeBetweenMoves = 1000;
@@ -41,7 +41,7 @@ function existEmptyCellsOnTable(stateArray) {
  * @returns interfata pentru joc
  */
 
-function SingleplayerGameBoard({ gameStatus, setGameStatus, setShowLoading }) {
+function SingleplayerGameBoard({ gameStatus, setGameStatus, setShowLoading, onBackToMenu }) {
   const [value, setValue] = useState("X");
   const [mySymbol, setMySymbol] = useState("");
   const [arr, setArr] = useState(Array(9).fill(""));
@@ -157,7 +157,7 @@ function SingleplayerGameBoard({ gameStatus, setGameStatus, setShowLoading }) {
       </div>
 
       <div
-        className={`text-center mt-3 ${
+        className={`text-center mt-3 d-flex justify-content-between ${
           gameStatus !== "Press START! to play ..." &&
           gameStatus !== "Player X won" &&
           gameStatus !== "Player O won" &&
@@ -168,10 +168,13 @@ function SingleplayerGameBoard({ gameStatus, setGameStatus, setShowLoading }) {
         }`}
       >
         <button
-          className="btn btn-warning w-50"
+          className="btn btn-warning w-100 me-2"
           onClick={!gameStarted ? startGame : resetGame}
         >
           Joc nou
+        </button>
+        <button className="btn btn-dark w-100 ms-2" onClick={onBackToMenu}>
+          Back to menu
         </button>
       </div>
     </>

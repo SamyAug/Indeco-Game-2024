@@ -1,4 +1,4 @@
-import React, { createContext, useState } from "react";
+import { createContext, useState } from "react";
 import Register from "./Register";
 import SocketContextProvider from "./SocketContextProvider";
 import PlayerList from "./PlayerList";
@@ -22,8 +22,7 @@ const App = () => {
     setGameMode(null);
   }
 
-  
-  return gameMode ?  (
+  return gameMode ? (
     gameMode === "singleplayer" ? (
       <SinglePlayerGame setGames={setGames} onBackToMenu={handleBackToMenu} />
     ) : (
@@ -31,25 +30,28 @@ const App = () => {
         <UserContext.Provider value={{ userData, setUserData }}>
           {Object.keys(userData).length ? (
             <>
-            <div className="row">
-              <div className="col-2 position-fixed overflow-y-auto" style={{height: "25em"}}>
-              <PlayerList
-                setGames={setGames}
-                userRelations={userRelations}
-                setUserRelations={setUserRelations}
-                onBackToMenu={handleBackToMenu}
-              />
-              </div>
-              <div className="col text-center">
-              {games.map((game) => (
-                <Game
-                  key={game.userId}
-                  gameData={game}
-                  setGames={setGames}
-                  setUserRelations={setUserRelations}
-                />
-              ))}
-              </div>
+              <div className="row">
+                <div
+                  className="col-sm-2 col-12"
+                >
+                  <PlayerList
+                    setGames={setGames}
+                    userRelations={userRelations}
+                    setUserRelations={setUserRelations}
+                    onBackToMenu={handleBackToMenu}
+                  />
+                </div>
+                <div className="col-sm-10 col-12 text-center">
+                  {games.map((game) => (
+                    <Game
+                      key={game.userId}
+                      gameData={game}
+                      setGames={setGames}
+                      setUserRelations={setUserRelations}
+                      onBackToMenu={handleBackToMenu}
+                    />
+                  ))}
+                </div>
               </div>
             </>
           ) : (
@@ -64,7 +66,6 @@ const App = () => {
   ) : (
     <GameMode onSelectMode={handleSelectMode} />
   );
-  
 };
 
 export default App;

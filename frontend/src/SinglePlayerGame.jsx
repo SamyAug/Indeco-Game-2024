@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import SingleplayerGameBoard from './SingleplayerGameBoard';
-import PlayerCard from './PlayerCard';
-import GameStatus from './GameStatus';
+/* eslint-disable react/prop-types */
+import { useState } from "react";
+import SingleplayerGameBoard from "./SingleplayerGameBoard";
+import PlayerCard from "./PlayerCard";
+import GameStatus from "./GameStatus";
 
-function SinglePlayerGame({onBackToMenu }) { 
-
+function SinglePlayerGame({ onBackToMenu }) {
   const [gameStatus, setGameStatus] = useState("Press START! to play ...");
   const [showLoading, setShowLoading] = useState(false);
 
@@ -13,7 +13,7 @@ function SinglePlayerGame({onBackToMenu }) {
       <div className="row justify-content-md-center">
         <div className="col-5">
           <GameStatus
-            opponentData={{ playerName: 'PC' }}
+            opponentData={{ playerName: "PC" }}
             statusMessage={gameStatus}
             showLoading={showLoading}
           />
@@ -38,7 +38,6 @@ function SinglePlayerGame({onBackToMenu }) {
           <PlayerCard
             playerName="PC"
             imageUrl="https://media0.giphy.com/media/JsE9qckiYyVClQ5bY2/giphy.gif?cid=6c09b952t9pmpruol4hnbnge9mgc4z1k5w11ie07c3k5m3ax&ep=v1_internal_gif_by_id&rid=giphy.gif&ct=g "
-
           />
         </div>
       </div>
