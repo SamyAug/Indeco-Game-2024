@@ -1,16 +1,7 @@
 import { useState } from "react";
 import "./GameBoard.css";
-const timeBetweenMoves = 1000;
-const winningCombos = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6],
-];
+import { emptyGameBoardDimension, winningCombos, timeBetweenMoves} from "./constant";
+
 
 function calculateWinner(stateArray) {
   for (let i = 0; i < winningCombos.length; i++) {
@@ -40,10 +31,10 @@ function existEmptyCellsOnTable(stateArray) {
  * @returns interfata pentru joc
  */
 
-function SingleplayerGameBoard({ gameStatus, setGameStatus, setShowLoading }) {
+function SingleplayerGameBoard({ gameStatus, setGameStatus, setShowLoading, onBackToMenu}) {
   const [value, setValue] = useState("X");
   const [mySymbol, setMySymbol] = useState("");
-  const [arr, setArr] = useState(Array(9).fill(""));
+  const [arr, setArr] = useState(Array(emptyGameBoardDimension).fill(""));
   const [gameStarted, setGameStarted] = useState(false);
 
   function handleCellClick(index) {
@@ -101,7 +92,7 @@ function SingleplayerGameBoard({ gameStatus, setGameStatus, setShowLoading }) {
   function resetGame() {
     setValue("X");
     setGameStatus("Player X moves next");
-    const resetedArray = Array(9).fill("");
+    const resetedArray = Array(emptyGameBoardDimension).fill("");
     setArr(resetedArray);
     const newSymbol = Math.random() > 0.5 ? "X" : "O";
     setMySymbol(newSymbol);
@@ -167,11 +158,16 @@ function SingleplayerGameBoard({ gameStatus, setGameStatus, setShowLoading }) {
         }`}
       >
         <button
-          className="btn btn-warning w-50"
+          className="btn btn-warning me-3"
           onClick={!gameStarted ? startGame : resetGame}
         >
           Joc nou
         </button>
+          <button  
+           className="btn btn-dark md-3"
+           onClick={onBackToMenu}
+           > 
+           Back to menu</button>
       </div>
     </>
   );

@@ -1,19 +1,12 @@
-import { useContext, useEffect, useState } from "react";
-import { SocketContext } from "./SocketContext";
+import { useContext, useEffect, useState, useCallback } from "react";
 import { UserContext } from "./App";
+import { useSocket } from "./useSocket";
 
-const PlayerList = ({ setGames }) => {
+const PlayerList = ({ setGames, userRelations , setUserRelations }) => {
   const { userData } = useContext(UserContext);
-  const socket = useContext(SocketContext);
   const [userList, setUserList] = useState([]);
-  const [userRelations, setUserRelations] = useState([]);
-  // console.log(userRelations)
-  socket.onmessage = ({ data }) => {
-    console.log("Data from PlayerList:", data);
+  const socket = useSocket(({ messageType, users, senderId, message }) => {
     try {
-      const { messageType, users, senderId, message } = JSON.parse(data);
-
-      //{ messageType: "userRefresh", users }
       if (messageType === "userRefresh") {
         setUserList(users);
       } else if (senderId && message) {
@@ -28,8 +21,8 @@ const PlayerList = ({ setGames }) => {
           const opponentData = userList.find(
             (user) => user.userId === senderId
           );
-          setUserRelations(
-            userRelations.map((relation) => {
+          setUserRelations((prevRelations) =>
+            prevRelations.map((relation) => {
               if (relation.userId === senderId)
                 return { ...relation, relationStatus: "playing" };
               return relation;
@@ -40,46 +33,47 @@ const PlayerList = ({ setGames }) => {
             { ...opponentData, symbol: message.symbol === "X" ? "O" : "X" },
           ]);
         }
-
         if (message.userRequestType === "declineRequest") {
           setUserRelations((prevRelations) =>
             prevRelations.filter((relation) => relation.userId !== senderId)
+          );
+          setGames((prevGames) =>
+            prevGames.filter((game) => senderId !== game.userId)
           );
         }
       }
     } catch (err) {
       console.log(err);
     }
-  };
+  });
+
   const calculateUserRelationStatus = (relationStatus, userId) => {
     if (relationStatus === "invited") {
       return (
         <>
-          <button onClick={() => handleRequestAccept(userId)}>Accept</button>
-          <button onClick={() => handleRequestDecline(userId)}>Decline</button>
+          <button className="btn btn-success ms-3 me-3 mt-3" onClick={() => handleRequestAccept(userId)}>Accept</button>
+          <button className="btn btn-danger mt-3" onClick={() => handleRequestDecline(userId)}>Decline</button>
         </>
       );
     }
 
     if (relationStatus === "inviting") {
-      return <button disabled>Waiting...</button>;
+      return <button className="btn btn-info ms-3 mt-3" disabled>Waiting...</button>;
     }
 
     if (relationStatus === "playing") {
-      return <button disabled>Playing...</button>;
+      return <button className="btn btn-info ms-3 mt-3" disabled>Playing...</button>;
     }
 
     return (
-      <button value={userId} onClick={handleSendInvite}>
+      <button  className="btn btn-primary ms-3 mt-3" value={userId} onClick={handleSendInvite}>
         Invite to play
       </button>
     );
   };
 
-  const handleSendInvite = (e) => {
+  const handleSendInvite = useCallback((e) => {
     const { value: opponentId } = e.target;
-
-    // { receivers, message }
     socket.send(
       JSON.stringify({
         receivers: [opponentId],
@@ -90,17 +84,17 @@ const PlayerList = ({ setGames }) => {
       ...prevRelations,
       { userId: opponentId, relationStatus: "inviting" },
     ]);
-  };
+  }, [socket, setUserRelations]);
 
-  const handleRequestAccept = (userId) => {
+  const handleRequestAccept = useCallback((userId) => {
     const opponentData = userList.find((user) => user.userId === userId);
     const mySymbol = Math.random() > 0.5 ? "X" : "O";
     setGames((prevGames) => [
       ...prevGames,
       { ...opponentData, symbol: mySymbol },
     ]);
-    setUserRelations(
-      userRelations.map((relation) => {
+    setUserRelations((prevRelations) =>
+      prevRelations.map((relation) => {
         if (relation.userId === userId)
           return { ...relation, relationStatus: "playing" };
         return relation;
@@ -112,9 +106,9 @@ const PlayerList = ({ setGames }) => {
         message: { userRequestType: "acceptRequest", symbol: mySymbol },
       })
     );
-  };
+  }, [userList, setGames, setUserRelations, socket]);
 
-  const handleRequestDecline = (userId) => {
+  const handleRequestDecline = useCallback((userId) => {
     setUserRelations((prevRelations) =>
       prevRelations.filter((relation) => relation.userId !== userId)
     );
@@ -124,21 +118,22 @@ const PlayerList = ({ setGames }) => {
         message: { userRequestType: "declineRequest" },
       })
     );
-  };
+  }, [setUserRelations, socket]);
 
   useEffect(() => {
-    if (!userList.length)
-      socket.send(JSON.stringify({ messageType: "userRefresh" }));
-  }, []);
+    socket.send(JSON.stringify({ messageType: "userRefresh" }));
+  }, [socket]);
 
   return (
-    <>
-      <ul>
+  
+       <ul>
         {userList.map((user) => {
           const userRelation = userRelations.find(
             (relation) => relation.userId === user.userId
           );
           return (
+          
+
             <li key={user.userId}>
               {user.username}
               {user.userId !== userData.userId &&
@@ -147,10 +142,11 @@ const PlayerList = ({ setGames }) => {
                   user.userId
                 )}
             </li>
+
+            
           );
         })}
       </ul>
-    </>
   );
 };
 

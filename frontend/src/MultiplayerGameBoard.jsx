@@ -1,16 +1,10 @@
-import { useState, useContext } from "react";
+import { useState, useRef } from "react";
 import "./GameBoard.css";
-import { SocketContext } from "./SocketContext";
-const winningCombos = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6],
-];
+import Modal from "./Modal";
+import { useSocket } from "./useSocket";
+import { afkTime,emptyGameBoardDimension,winningCombos } from "./constant";
+
+
 
 function calculateWinner(stateArray) {
   for (let i = 0; i < winningCombos.length; i++) {
@@ -44,28 +38,27 @@ function MultiplayerGameBoard({
   setShowLoading,
   gameStatus,
   gameData,
+  setGames,
+  setUserRelations,
 }) {
   const [value, setValue] = useState("X");
   const [mySymbol, setMySymbol] = useState("");
-  const [arr, setArr] = useState(Array(9).fill(""));
+  const [arr, setArr] = useState(Array(emptyGameBoardDimension).fill(""));
   const [isGameOver, setIsGameOver] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const timeOutRef = useRef(null)
 
-  const socket = useContext(SocketContext);
-
-  if (gameData && gameData.symbol && !mySymbol) {
-    console.log(gameData.symbol);
-    setMySymbol(gameData.symbol);
-
-    // setGameStatus(calculateGameStatus(arr, value));
-    // setShowLoading(gameData.symbol !== value);
-  }
-
-  socket.onmessage = ({ data }) => {
+  const socket = useSocket(({ senderId, message }) => {
+    console.log("gameboard use socket");
     try {
-      const { senderId, message } = JSON.parse(data);
       if (senderId === gameData.userId && message?.gameArray) {
+        clearTimeout(timeOutRef.current)
         setArr([...message.gameArray]);
         const gameOver = verifyGameOver(message.gameArray);
+          timeOutRef.current = setTimeout(()=>{handleDecline();
+            alert("Time out")
+          },afkTime)
+        
         let newValue;
         if (!isGameOver) {
           newValue = flipValue();
@@ -76,11 +69,39 @@ function MultiplayerGameBoard({
         setIsGameOver(gameOver);
         setGameStatus(calculateGameStatus(message.gameArray, newValue));
         setShowLoading(false);
+      } else if (
+        senderId === gameData.userId &&
+        message.userRequestType === "reset"
+      ) {
+        setIsOpen(true);
+      } else if (
+        senderId == gameData.userId &&
+        message.userRequestType === "acceptReset"
+      ) {
+        if(timeOutRef.current){
+          clearTimeout(timeOutRef.current)
+        }
+        setValue("X");
+        const newSymbol = message.symbol === "X" ? "O" : "X";
+        setMySymbol(newSymbol);
+        const newArray = Array(emptyGameBoardDimension).fill("");
+        setArr(newArray);
+        setGameStatus(calculateGameStatus(newArray, "X", newSymbol));
+        setShowLoading(newSymbol !== "X");
+        setIsGameOver(false);
       }
     } catch (error) {
       console.log(error);
     }
-  };
+  });
+
+  if (gameData && gameData.symbol && !mySymbol) {
+    console.log(gameData.symbol);
+    setMySymbol(gameData.symbol);
+
+    // setGameStatus(calculateGameStatus(arr, value));
+    // setShowLoading(gameData.symbol !== value);
+  }
 
   function handleCellClick(index) {
     if (arr[index] || calculateWinner(arr)) {
@@ -107,46 +128,105 @@ function MultiplayerGameBoard({
       newValue = value;
     }
 
+    clearTimeout(timeOutRef.current)
+
+    const gameOver = verifyGameOver(newArrayState);
     setArr(newArrayState);
     setGameStatus(calculateGameStatus(newArrayState, newValue));
-    setShowLoading(newValue !== mySymbol && !isGameOver);
-    setIsGameOver(verifyGameOver(newArrayState));
+    setShowLoading(newValue !== mySymbol && !gameOver);
+    setIsGameOver(gameOver);
     socket.send(
       JSON.stringify({
         receivers: [gameData.userId],
         message: { gameArray: newArrayState },
       })
     );
+   
+      timeOutRef.current = setTimeout(()=>{handleDecline();
+        alert("Time out")
+        
+      }, afkTime)
+    
+
   }
 
-  function calculateGameStatus(newArray, newValue) {
+  function calculateGameStatus(newArray, newValue, myNewSymbol) {
     let winner = calculateWinner(newArray).winner;
     if (winner) {
       return `Player ${winner} won`;
     } else if (existEmptyCellsOnTable(newArray) === false) {
       return "It's a draw";
     }
-    if (newValue === mySymbol) {
-      return `You move`;
+    if (newValue === (myNewSymbol || mySymbol)) {
+      return `You move with ${(myNewSymbol || mySymbol)}`;
     } else {
       return ``;
     }
   }
 
-  function resetGame() {
+  //   function resetGame() {
+  //     setValue("X");
+  //     setArr(resetedArray);
+  //     setMySymbol(newSymbol);
+  //     setIsGameOver(false);
+  //     setGameStatus(calculateGameStatus(resetedArray, "X"));
+  //     setShowLoading(newSymbol !== "X");
+  //   }
+
+  function handleAccept() {
+    clearTimeout(timeOutRef.current)
+    setIsOpen(false);
+    const newSymbol = Math.random() > 0.5 ? "X" : "O";
     setValue("X");
-    const resetedArray = Array(9).fill("");
-    setArr(resetedArray);
     setMySymbol(newSymbol);
+    const resetedArray = Array(emptyGameBoardDimension).fill("");
+    setArr(resetedArray);
     setIsGameOver(false);
-    setGameStatus(calculateGameStatus(resetedArray, "X"));
+    setGameStatus(calculateGameStatus(resetedArray, "X", newSymbol));
     setShowLoading(newSymbol !== "X");
+    
+
+    socket.send(
+      JSON.stringify({
+        receivers: [gameData.userId],
+        message: { userRequestType: "acceptReset", symbol: newSymbol },
+      })
+    );
+  }
+
+  function handleDecline() {
+    clearTimeout(timeOutRef.current)
+    setIsOpen(false);
+    setGames((prevGames) =>
+      prevGames.filter((game) => game.userId !== gameData.userId)
+    );
+    setUserRelations((prevRelations) =>
+      prevRelations.filter((relation) => relation.userId !== gameData.userId)
+    );
+    socket.send(
+      JSON.stringify({
+        receivers: [gameData.userId],
+        message: { userRequestType: "declineRequest" },
+      })
+    );
   }
 
   function verifyGameOver(newArray) {
     const winner = calculateWinner(newArray).winner;
     // daca am castigator sau tabla nu mai este goala, s-a sfarsit jocul
     return winner || !existEmptyCellsOnTable(newArray);
+
+  }
+
+  function sendResetRequest() {
+    clearTimeout(timeOutRef.current)
+    setShowLoading(true)
+    socket.send(
+      JSON.stringify({
+        receivers: [gameData.userId],
+        message: { userRequestType: "reset" },
+      })
+    );
   }
 
   return (
@@ -180,10 +260,20 @@ function MultiplayerGameBoard({
       </div>
 
       <div className={`text-center mt-3 ${!isGameOver ? "d-none" : ""}`}>
-        <button className="btn btn-warning w-50" onClick={resetGame}>
-          Joc nou
+        <button className="btn btn-warning w-25 me-3" onClick={sendResetRequest} >
+          New Game
+        </button>
+        <button className="btn btn-dark w-25 md-3" onClick={handleDecline}>
+          Leave Game
         </button>
       </div>
+
+
+      {isOpen && (
+        <Modal title="Rematch" onClose={handleDecline} onAccept={handleAccept}>
+          <div>{gameData.username} wants to play again</div>
+        </Modal>
+      )}
     </>
   );
 }

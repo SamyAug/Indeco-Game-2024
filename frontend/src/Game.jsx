@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import SingleplayerGameBoard from "./SingleplayerGameBoard";
 import PlayerCard from "./PlayerCard";
 import GameStatus from "./GameStatus";
 import MultiplayerGameBoard from "./MultiplayerGameBoard";
 
-function Game({ gameData }) {
+function Game({ gameData, setGames, setUserRelations }) {
   const [gameStatus, setGameStatus] = useState(
-    gameData.symbol === "X" ? "You move" : ""
+    gameData.symbol === "X" ? "You move with X" : ""
   );
   const [showLoading, setShowLoading] = useState(gameData.symbol !== "X");
+  const [timeCounter, setTimeCounter] = useState(null)
 
   return (
     <div className="container mt-5">
@@ -26,7 +27,8 @@ function Game({ gameData }) {
           <PlayerCard
             playerName="Jucatorul 1"
             imageUrl="https://cdnb.artstation.com/p/assets/images/images/020/466/229/large/andre-alvarenga-dd.jpg?1567876618"
-          />
+            timeCounter={timeCounter}
+         />
         </div>
         <div className="col-5">
           {/* <SingleplayerGameBoard
@@ -35,17 +37,21 @@ function Game({ gameData }) {
             setShowLoading={setShowLoading}
           /> */}
           <MultiplayerGameBoard
+            setGames={setGames}
             gameData={gameData}
             gameStatus={gameStatus}
             setGameStatus={setGameStatus}
             setShowLoading={setShowLoading}
+            setUserRelations={setUserRelations}
+            setTimeCounter={setTimeCounter}
           />
         </div>
         <div className="col-3">
           <PlayerCard
             playerName="Jucatorul 2"
             imageUrl="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExcG51c28xMm15bDJueXkwYTd0Z2F4MTJoYTB5cnA1Z3U3dzBnOGFmdCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/JsE9qckiYyVClQ5bY2/giphy.gif"
-          />
+            timeCounter={timeCounter}
+         />
         </div>
       </div>
     </div>
