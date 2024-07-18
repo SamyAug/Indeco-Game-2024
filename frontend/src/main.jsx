@@ -5,8 +5,6 @@ import SocketContextProvider from "./SocketContextProvider.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <SocketContextProvider>
       <App />
-    </SocketContextProvider>
   </React.StrictMode>
 );

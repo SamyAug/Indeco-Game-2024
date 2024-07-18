@@ -1,19 +1,10 @@
-import { useState, useContext } from "react";
+import { useState, useRef } from "react";
 import "./GameBoard.css";
-import { SocketContext } from "./SocketContext";
 import Modal from "./Modal";
 import { useSocket } from "./useSocket";
-import { UserContext } from "./App";
-const winningCombos = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6],
-];
+import { afkTime,emptyGameBoardDimension,winningCombos } from "./constant";
+
+
 
 function calculateWinner(stateArray) {
   for (let i = 0; i < winningCombos.length; i++) {
@@ -52,18 +43,22 @@ function MultiplayerGameBoard({
 }) {
   const [value, setValue] = useState("X");
   const [mySymbol, setMySymbol] = useState("");
-  const [arr, setArr] = useState(Array(9).fill(""));
+  const [arr, setArr] = useState(Array(emptyGameBoardDimension).fill(""));
   const [isGameOver, setIsGameOver] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-
-  const { userData } = useContext(UserContext);
+  const timeOutRef = useRef(null)
 
   const socket = useSocket(({ senderId, message }) => {
     console.log("gameboard use socket");
     try {
       if (senderId === gameData.userId && message?.gameArray) {
+        clearTimeout(timeOutRef.current)
         setArr([...message.gameArray]);
         const gameOver = verifyGameOver(message.gameArray);
+          timeOutRef.current = setTimeout(()=>{handleDecline();
+            alert("Time out")
+          },afkTime)
+        
         let newValue;
         if (!isGameOver) {
           newValue = flipValue();
@@ -83,10 +78,13 @@ function MultiplayerGameBoard({
         senderId == gameData.userId &&
         message.userRequestType === "acceptReset"
       ) {
+        if(timeOutRef.current){
+          clearTimeout(timeOutRef.current)
+        }
         setValue("X");
         const newSymbol = message.symbol === "X" ? "O" : "X";
         setMySymbol(newSymbol);
-        const newArray = Array(9).fill("");
+        const newArray = Array(emptyGameBoardDimension).fill("");
         setArr(newArray);
         setGameStatus(calculateGameStatus(newArray, "X", newSymbol));
         setShowLoading(newSymbol !== "X");
@@ -130,6 +128,8 @@ function MultiplayerGameBoard({
       newValue = value;
     }
 
+    clearTimeout(timeOutRef.current)
+
     const gameOver = verifyGameOver(newArrayState);
     setArr(newArrayState);
     setGameStatus(calculateGameStatus(newArrayState, newValue));
@@ -141,6 +141,13 @@ function MultiplayerGameBoard({
         message: { gameArray: newArrayState },
       })
     );
+   
+      timeOutRef.current = setTimeout(()=>{handleDecline();
+        alert("Time out")
+        
+      }, afkTime)
+    
+
   }
 
   function calculateGameStatus(newArray, newValue, myNewSymbol) {
@@ -151,7 +158,7 @@ function MultiplayerGameBoard({
       return "It's a draw";
     }
     if (newValue === (myNewSymbol || mySymbol)) {
-      return `You move`;
+      return `You move with ${(myNewSymbol || mySymbol)}`;
     } else {
       return ``;
     }
@@ -167,15 +174,17 @@ function MultiplayerGameBoard({
   //   }
 
   function handleAccept() {
+    clearTimeout(timeOutRef.current)
     setIsOpen(false);
     const newSymbol = Math.random() > 0.5 ? "X" : "O";
     setValue("X");
     setMySymbol(newSymbol);
-    const resetedArray = Array(9).fill("");
+    const resetedArray = Array(emptyGameBoardDimension).fill("");
     setArr(resetedArray);
     setIsGameOver(false);
     setGameStatus(calculateGameStatus(resetedArray, "X", newSymbol));
     setShowLoading(newSymbol !== "X");
+    
 
     socket.send(
       JSON.stringify({
@@ -186,6 +195,7 @@ function MultiplayerGameBoard({
   }
 
   function handleDecline() {
+    clearTimeout(timeOutRef.current)
     setIsOpen(false);
     setGames((prevGames) =>
       prevGames.filter((game) => game.userId !== gameData.userId)
@@ -205,9 +215,12 @@ function MultiplayerGameBoard({
     const winner = calculateWinner(newArray).winner;
     // daca am castigator sau tabla nu mai este goala, s-a sfarsit jocul
     return winner || !existEmptyCellsOnTable(newArray);
+
   }
 
   function sendResetRequest() {
+    clearTimeout(timeOutRef.current)
+    setShowLoading(true)
     socket.send(
       JSON.stringify({
         receivers: [gameData.userId],
@@ -247,10 +260,14 @@ function MultiplayerGameBoard({
       </div>
 
       <div className={`text-center mt-3 ${!isGameOver ? "d-none" : ""}`}>
-        <button className="btn btn-warning w-50" onClick={sendResetRequest}>
-          Joc nou
+        <button className="btn btn-warning w-25 me-3" onClick={sendResetRequest} >
+          New Game
+        </button>
+        <button className="btn btn-dark w-25 md-3" onClick={handleDecline}>
+          Leave Game
         </button>
       </div>
+
 
       {isOpen && (
         <Modal title="Rematch" onClose={handleDecline} onAccept={handleAccept}>

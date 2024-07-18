@@ -1,9 +1,8 @@
-import { useContext, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import SingleplayerGameBoard from "./SingleplayerGameBoard";
 import PlayerCard from "./PlayerCard";
 import GameStatus from "./GameStatus";
 import MultiplayerGameBoard from "./MultiplayerGameBoard";
-import { UserContext } from "./App";
 
 function Game({ gameMode, gameData, setGames, setUserRelations }) {
   // const { userData } = useContext(UserContext);
@@ -30,7 +29,8 @@ function Game({ gameMode, gameData, setGames, setUserRelations }) {
           <PlayerCard
             playerName={gameMode === "singleplayer" ? "Player1" : ""}
             imageUrl="https://cdnb.artstation.com/p/assets/images/images/020/466/229/large/andre-alvarenga-dd.jpg?1567876618"
-          />
+            timeCounter={timeCounter}
+         />
         </div>
         <div className="col-5">
           {gameMode === "singleplayer" ? (
@@ -54,7 +54,8 @@ function Game({ gameMode, gameData, setGames, setUserRelations }) {
           <PlayerCard
             playerName={gameData.username}
             imageUrl="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExcG51c28xMm15bDJueXkwYTd0Z2F4MTJoYTB5cnA1Z3U3dzBnOGFmdCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/JsE9qckiYyVClQ5bY2/giphy.gif"
-          />
+            timeCounter={timeCounter}
+         />
         </div>
       </div>
     </div>
