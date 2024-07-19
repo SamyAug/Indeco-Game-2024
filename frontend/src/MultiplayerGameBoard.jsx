@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import "./GameBoard.css";
 import Modal from "./Modal";
 import { useSocket } from "./useSocket";
@@ -40,6 +40,8 @@ function MultiplayerGameBoard({
   gameData,
   setGames,
   setUserRelations,
+  timeCounter,
+  setTimeCounter
 }) {
   const [value, setValue] = useState("X");
   const [mySymbol, setMySymbol] = useState("");
@@ -55,9 +57,9 @@ function MultiplayerGameBoard({
         clearTimeout(timeOutRef.current)
         setArr([...message.gameArray]);
         const gameOver = verifyGameOver(message.gameArray);
-          timeOutRef.current = setTimeout(()=>{handleDecline();
-            alert("Time out")
-          },afkTime)
+          // timeOutRef.current = setTimeout(()=>{handleDecline();
+          //   alert("Time out")
+          // },afkTime)
         
         let newValue;
         if (!isGameOver) {
@@ -95,6 +97,13 @@ function MultiplayerGameBoard({
     }
   });
 
+  // useEffect(() => {
+  //   timeOutRef.current = setTimeout(()=>{handleDecline();
+  //     alert("Time out")
+      
+  //   }, afkTime)
+  // }, [])
+
   if (gameData && gameData.symbol && !mySymbol) {
     console.log(gameData.symbol);
     setMySymbol(gameData.symbol);
@@ -114,6 +123,17 @@ function MultiplayerGameBoard({
   function flipValue() {
     return value === "X" ? "O" : "X";
   }
+
+  const timeCounterInterval = useCallback(() => {
+      if(timeCounter <= 0){
+        console.log("Entered timecounter if")
+        clearInterval(timeOutRef.current)
+        handleDecline()
+        setTimeCounter(afkTime / 1000)
+      } else {
+        setTimeCounter((prevCounter) => prevCounter - 1)
+      }
+  }, [timeCounter])
 
   function executeGameMove(index) {
     let newArrayState = arr.map((element, indexElem) => {
@@ -142,14 +162,14 @@ function MultiplayerGameBoard({
       })
     );
    
-      timeOutRef.current = setTimeout(()=>{handleDecline();
-        alert("Time out")
+      // timeOutRef.current = setTimeout(()=>{handleDecline();
+      //   alert("Time out")
         
-      }, afkTime)
+      // }, afkTime)
+      timeOutRef.current = setInterval(timeCounterInterval, 1000)
+    }
+  
     
-
-  }
-
   function calculateGameStatus(newArray, newValue, myNewSymbol) {
     let winner = calculateWinner(newArray).winner;
     if (winner) {

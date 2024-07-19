@@ -4,11 +4,12 @@ import SingleplayerGameBoard from "./SingleplayerGameBoard";
 import PlayerCard from "./PlayerCard";
 import GameStatus from "./GameStatus";
 import MultiplayerGameBoard from "./MultiplayerGameBoard";
+import { afkTime } from "./constant";
 
 function Game({ gameMode, gameData, setGames, setUserRelations, onBackToMenu }) {
-  const [timeCounter, setTimeCounter] = useState(null)
+  const [timeCounter, setTimeCounter] = useState(afkTime / 1000)
   const [gameStatus, setGameStatus] = useState(
-    gameData?.symbol === "X" ? "You move" : ""
+    gameData?.symbol === "X" ? "You move with X" : ""
   );
   const [showLoading, setShowLoading] = useState(
     gameData?.symbol && gameData?.symbol !== "X"
@@ -49,6 +50,8 @@ function Game({ gameMode, gameData, setGames, setUserRelations, onBackToMenu }) 
               setGameStatus={setGameStatus}
               setShowLoading={setShowLoading}
               setUserRelations={setUserRelations}
+              timeCounter={timeCounter}
+              setTimeCounter={setTimeCounter}
             />
           )}
         </div>
